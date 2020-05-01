@@ -12,6 +12,7 @@
 		4AB87AB5245CD09800DB6525 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB87AB3245CD09800DB6525 /* Main.storyboard */; };
 		4AB87AB7245CD09900DB6525 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AB87AB6245CD09900DB6525 /* Assets.xcassets */; };
 		4AB87ABA245CD09900DB6525 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB87AB8245CD09900DB6525 /* LaunchScreen.storyboard */; };
+		4AB87AC3245CDCED00DB6525 /* BoardScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AC2245CDCED00DB6525 /* BoardScene.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +23,7 @@
 		4AB87AB6245CD09900DB6525 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4AB87AB9245CD09900DB6525 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		4AB87ABB245CD09900DB6525 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		4AB87AC2245CDCED00DB6525 /* BoardScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoardScene.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +58,7 @@
 			children = (
 				4AB87AB3245CD09800DB6525 /* Main.storyboard */,
 				4AB87AB1245CD09800DB6525 /* TetrisViewController.swift */,
+				4AB87AC2245CDCED00DB6525 /* BoardScene.swift */,
 				4AB87AC1245CD0C400DB6525 /* Supporting Files */,
 				4AB87ABB245CD09900DB6525 /* Info.plist */,
 			);
@@ -143,6 +146,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AB87AC3245CDCED00DB6525 /* BoardScene.swift in Sources */,
 				4AB87AB2245CD09800DB6525 /* TetrisViewController.swift in Sources */,
 				4AB87AAE245CD09800DB6525 /* AppDelegate.swift in Sources */,
 			);
