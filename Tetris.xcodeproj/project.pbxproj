@@ -8,8 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4AB87AAE245CD09800DB6525 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AAD245CD09800DB6525 /* AppDelegate.swift */; };
-		4AB87AB0245CD09800DB6525 /* art.scnassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AB87AAF245CD09800DB6525 /* art.scnassets */; };
-		4AB87AB2245CD09800DB6525 /* GameViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AB1245CD09800DB6525 /* GameViewController.swift */; };
+		4AB87AB2245CD09800DB6525 /* TetrisViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AB1245CD09800DB6525 /* TetrisViewController.swift */; };
 		4AB87AB5245CD09800DB6525 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB87AB3245CD09800DB6525 /* Main.storyboard */; };
 		4AB87AB7245CD09900DB6525 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4AB87AB6245CD09900DB6525 /* Assets.xcassets */; };
 		4AB87ABA245CD09900DB6525 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB87AB8245CD09900DB6525 /* LaunchScreen.storyboard */; };
@@ -18,8 +17,7 @@
 /* Begin PBXFileReference section */
 		4AB87AAA245CD09800DB6525 /* Tetris.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tetris.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AB87AAD245CD09800DB6525 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		4AB87AAF245CD09800DB6525 /* art.scnassets */ = {isa = PBXFileReference; lastKnownFileType = wrapper.scnassets; path = art.scnassets; sourceTree = "<group>"; };
-		4AB87AB1245CD09800DB6525 /* GameViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameViewController.swift; sourceTree = "<group>"; };
+		4AB87AB1245CD09800DB6525 /* TetrisViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TetrisViewController.swift; sourceTree = "<group>"; };
 		4AB87AB4245CD09800DB6525 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		4AB87AB6245CD09900DB6525 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		4AB87AB9245CD09900DB6525 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -56,15 +54,22 @@
 		4AB87AAC245CD09800DB6525 /* Tetris */ = {
 			isa = PBXGroup;
 			children = (
-				4AB87AAD245CD09800DB6525 /* AppDelegate.swift */,
-				4AB87AAF245CD09800DB6525 /* art.scnassets */,
-				4AB87AB1245CD09800DB6525 /* GameViewController.swift */,
 				4AB87AB3245CD09800DB6525 /* Main.storyboard */,
-				4AB87AB6245CD09900DB6525 /* Assets.xcassets */,
-				4AB87AB8245CD09900DB6525 /* LaunchScreen.storyboard */,
+				4AB87AB1245CD09800DB6525 /* TetrisViewController.swift */,
+				4AB87AC1245CD0C400DB6525 /* Supporting Files */,
 				4AB87ABB245CD09900DB6525 /* Info.plist */,
 			);
 			path = Tetris;
+			sourceTree = "<group>";
+		};
+		4AB87AC1245CD0C400DB6525 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				4AB87AAD245CD09800DB6525 /* AppDelegate.swift */,
+				4AB87AB6245CD09900DB6525 /* Assets.xcassets */,
+				4AB87AB8245CD09900DB6525 /* LaunchScreen.storyboard */,
+			);
+			path = "Supporting Files";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -125,7 +130,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4AB87AB0245CD09800DB6525 /* art.scnassets in Resources */,
 				4AB87ABA245CD09900DB6525 /* LaunchScreen.storyboard in Resources */,
 				4AB87AB7245CD09900DB6525 /* Assets.xcassets in Resources */,
 				4AB87AB5245CD09800DB6525 /* Main.storyboard in Resources */,
@@ -139,7 +143,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4AB87AB2245CD09800DB6525 /* GameViewController.swift in Sources */,
+				4AB87AB2245CD09800DB6525 /* TetrisViewController.swift in Sources */,
 				4AB87AAE245CD09800DB6525 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -287,6 +291,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 65Z9KA7SHC;
 				INFOPLIST_FILE = Tetris/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -305,6 +310,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = 65Z9KA7SHC;
 				INFOPLIST_FILE = Tetris/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
