@@ -13,7 +13,7 @@ import SceneKit
 struct Constants {
     static let squareSize: CGFloat = 1
     static let backgroundThickness: CGFloat = 0.1
-    static let squareThickness: CGFloat = 0.2
+    static let squareThickness: CGFloat = 0.5
     static let cameraDistance: CGFloat = 22
     static let squaresPerBase = 12       // frame dimension
     static let squaresPerSide = 22       // frame dimension
@@ -45,7 +45,7 @@ class TetrisViewController: UIViewController {
     func setupView() {
         scnView = self.view as? SCNView
         scnView.showsStatistics = false  // true: show GPU resource usage and frames-per-second along bottom of scene
-        scnView.allowsCameraControl = false  // false: move camera programmatically
+        scnView.allowsCameraControl = true  // false: move camera programmatically
         scnView.autoenablesDefaultLighting = false  // false: disable default (ambient) light, if another light soure is specified
         scnView.scene = boardScene
     }

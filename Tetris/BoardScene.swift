@@ -28,6 +28,17 @@ class BoardScene: SCNScene {
                 }
             }
         }
+        
+        addBlockNode(type: .s, position: SCNVector3(-1.5, 8.5, 0))
+        addBlockNode(type: .z, position: SCNVector3(2.5, 5.5, 0))
+        addBlockNode(type: .t, position: SCNVector3(0.5, 2.5, 0))
+        addBlockNode(type: .cube, position: SCNVector3(-4.5, 3.5, 0))
+    }
+    
+    func addBlockNode(type: BlockType, position: SCNVector3) {
+        let blockNode = BlockNode(type: type)
+        blockNode.position = position
+        rootNode.addChildNode(blockNode)
     }
     
     func addBackground() {
@@ -40,8 +51,8 @@ class BoardScene: SCNScene {
         square.firstMaterial?.diffuse.contents = UIColor.black
         let squareNode = SCNNode(geometry: square)
         squareNode.name = "Background"
-        squareNode.position = SCNVector3(0, 0, -Constants.backgroundThickness)
-        squareNode.physicsBody = SCNPhysicsBody(type: .static, shape: nil)
+        squareNode.position = SCNVector3(0, 0, -(Constants.squareThickness + Constants.backgroundThickness) / 2)
+        squareNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         rootNode.addChildNode(squareNode)
     }
     
@@ -54,7 +65,7 @@ class BoardScene: SCNScene {
         let squareNode = SCNNode(geometry: square)
         squareNode.name = "Square"
         squareNode.position = position
-        squareNode.physicsBody = SCNPhysicsBody(type: .static, shape: nil)
+        squareNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         rootNode.addChildNode(squareNode)
         return squareNode
     }
