@@ -22,11 +22,11 @@ enum BlockType {
 class BlockNode: SCNNode {
     
     var type = BlockType.rightL
-    var shapeName = "rightL"
     
     init(type: BlockType) {
         self.type = type
         super.init()
+        name = "\(type)"
         setup()
     }
     
@@ -82,9 +82,9 @@ class BlockNode: SCNNode {
                            chamferRadius: 0.1 * Constants.squareSize)
         block.firstMaterial?.diffuse.contents = color
         let blockNode = SCNNode(geometry: block)
-        blockNode.name = shapeName
+        blockNode.name = "Block Node"
         blockNode.position = position
-        blockNode.physicsBody = SCNPhysicsBody(type: .dynamic, shape: nil)
+        blockNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         blockNode.physicsBody?.angularDamping = 1
         blockNode.physicsBody?.friction = 1
         blockNode.physicsBody?.restitution = 0  // bounciness

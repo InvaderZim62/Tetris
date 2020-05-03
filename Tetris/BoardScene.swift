@@ -15,7 +15,7 @@ class BoardScene: SCNScene {
         background.contents = "Background_Diffuse.png"
         
         // specify positions of square centers
-        // origin is center frontside of background
+        // origin is center of background, midway through edge blocks
         // squares[0][0] is lower left corner
         // x: right (columns), y: up (rows), z: out of screen
         addBackground()
@@ -63,7 +63,7 @@ class BoardScene: SCNScene {
                             chamferRadius: 0.1 * Constants.squareSize)
         square.firstMaterial?.diffuse.contents = color
         let squareNode = SCNNode(geometry: square)
-        squareNode.name = "Square"
+        squareNode.name = "Edge Square"
         squareNode.position = position
         squareNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         rootNode.addChildNode(squareNode)

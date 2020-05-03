@@ -40,8 +40,26 @@ class TetrisViewController: UIViewController {
         setupView()
         setupCamera()
         setupLight()
+        
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        scnView.addGestureRecognizer(tapGesture)
     }
     
+    @objc func handleTap(_ gestureRecognize: UIGestureRecognizer) {
+        // check what node was tapped, and rotate it
+        let location = gestureRecognize.location(in: scnView)
+        let hitResults = scnView.hitTest(location, options: nil)
+        if hitResults.count > 0 {
+            let result = hitResults[0]
+            if let parent = result.node.parent {
+                if let parentName = parent.name {
+                    print(parentName)
+                    parent.transform = SCNMatrix4Rotate(parent.transform, -.pi/2, 0, 0, 1)
+                }
+            }
+        }
+    }
+        
     func setupView() {
         scnView = self.view as? SCNView
         scnView.showsStatistics = false  // true: show GPU resource usage and frames-per-second along bottom of scene
