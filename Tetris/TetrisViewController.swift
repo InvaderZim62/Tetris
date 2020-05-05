@@ -55,27 +55,29 @@ class TetrisViewController: UIViewController {
                 if let parentName = parent.name {
                     print(parentName)
                     parent.transform = SCNMatrix4Rotate(parent.transform, -.pi/2, 0, 0, 1)
+//                    parent.physicsBody?.resetTransform()  // pws: doesn't enable rotation (rotation doesn't work if blocks are .dynamic)
                 }
             }
         }
     }
         
-    func setupView() {
+    private func setupView() {
         scnView = self.view as? SCNView
         scnView.showsStatistics = false  // true: show GPU resource usage and frames-per-second along bottom of scene
-        scnView.allowsCameraControl = true  // false: move camera programmatically
+        scnView.allowsCameraControl = false  // false: move camera programmatically
         scnView.autoenablesDefaultLighting = false  // false: disable default (ambient) light, if another light soure is specified
+//        scnView.isPlaying = true  // true: prevent SceneKit from entering a "paused" state, if there isn't anything to animate
         scnView.scene = boardScene
     }
     
-    func setupCamera() {
+    private func setupCamera() {
         cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
         cameraNode.position = SCNVector3(0, 0, Constants.cameraDistance)
         boardScene.rootNode.addChildNode(cameraNode)
     }
     
-    func setupLight() {
+    private func setupLight() {
         let lightNode = SCNNode()
         lightNode.light = SCNLight()
         lightNode.light!.type = .omni

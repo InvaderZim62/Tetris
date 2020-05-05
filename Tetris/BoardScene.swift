@@ -14,6 +14,8 @@ class BoardScene: SCNScene {
     func setup() {
         background.contents = "Background_Diffuse.png"
         
+        physicsWorld.gravity = SCNVector3(0, -3, 0)  // gravity in m/s
+        
         // specify positions of square centers
         // origin is center of background, midway through edge blocks
         // squares[0][0] is lower left corner
@@ -24,7 +26,7 @@ class BoardScene: SCNScene {
         for row in 0..<Constants.squaresPerSide {
             for col in 0..<Constants.squaresPerBase {
                 if row == 0 || row == Constants.squaresPerSide - 1 || col == 0 || col == Constants.squaresPerBase - 1 {
-                    _ = addSquareNode(position: positionFor(row: row, col: col), color: .gray)
+                    _ = addEdgeSquareNode(position: positionFor(row: row, col: col), color: .gray)
                 }
             }
         }
@@ -35,13 +37,13 @@ class BoardScene: SCNScene {
         addBlockNode(type: .cube, position: SCNVector3(-4.5, 3.5, 0))
     }
     
-    func addBlockNode(type: BlockType, position: SCNVector3) {
-        let blockNode = BlockNode(type: type)
+    private func addBlockNode(type: BlockType, position: SCNVector3) {
+        let blockNode = BlockNode(type: type, scene: self)
         blockNode.position = position
         rootNode.addChildNode(blockNode)
     }
     
-    func addBackground() {
+    private func addBackground() {
         let width = Constants.squareSize * CGFloat(Constants.squaresPerBase)
         let height = Constants.squareSize * CGFloat(Constants.squaresPerSide)
         let square = SCNBox(width: width,
@@ -56,7 +58,7 @@ class BoardScene: SCNScene {
         rootNode.addChildNode(squareNode)
     }
     
-    func addSquareNode(position: SCNVector3, color: UIColor) -> SCNNode {
+    private func addEdgeSquareNode(position: SCNVector3, color: UIColor) -> SCNNode {
         let square = SCNBox(width: Constants.squareSize,
                             height: Constants.squareSize,
                             length: Constants.squareThickness,
@@ -70,7 +72,7 @@ class BoardScene: SCNScene {
         return squareNode
     }
 
-    func positionFor(row: Int, col: Int) -> SCNVector3 {
+    private func positionFor(row: Int, col: Int) -> SCNVector3 {
         let rowOffset = CGFloat(Constants.squaresPerSide) / 2 - 0.5  // middle of board is origin
         let colOffset = CGFloat(Constants.squaresPerBase) / 2 - 0.5  // middle of board is origin
         return SCNVector3((CGFloat(col) - colOffset) * Constants.squareSize,
