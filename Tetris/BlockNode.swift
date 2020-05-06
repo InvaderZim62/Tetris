@@ -113,13 +113,9 @@ class BlockNode: SCNNode {  // BlockNode is the parent node of blocks that make 
         let blockNode = SCNNode(geometry: block)
         blockNode.name = "Block Node"
         blockNode.position = position
-        blockNode.physicsBody = SCNPhysicsBody(type: .dynamic, shape: nil)
-        blockNode.physicsBody?.isAffectedByGravity = true  // gravity magnitude set in BoardScene
-//        blockNode.physicsBody?.velocity = SCNVector3(0, -4, 0)  // initial velocity
-        blockNode.physicsBody?.angularDamping = 1
-        blockNode.physicsBody?.friction = 1
-        blockNode.physicsBody?.damping = 0
-        blockNode.physicsBody?.restitution = 0  // bounciness
+        blockNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
+        blockNode.physicsBody?.categoryBitMask = PhysicsCategory.Block  // must be added to each block of tetris shape
+        blockNode.physicsBody?.contactTestBitMask = PhysicsCategory.Block | PhysicsCategory.Frame
         addChildNode(blockNode)
         return blockNode
     }
