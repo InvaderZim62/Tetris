@@ -11,13 +11,13 @@ import QuartzCore
 import SceneKit
 
 struct Constants {
-    static let squareSpacing: CGFloat = 1
-    static let squareSize: CGFloat = 0.97
+    static let blockSpacing: CGFloat = 1
+    static let blockSize: CGFloat = 0.97
     static let backgroundThickness: CGFloat = 0.1
-    static let squareThickness: CGFloat = 0.5
+    static let blockThickness: CGFloat = 0.5
     static let cameraDistance: CGFloat = 22
-    static let squaresPerBase = 12       // frame dimension
-    static let squaresPerSide = 22       // frame dimension
+    static let blocksPerBase = 12       // frame dimension
+    static let blocksPerSide = 22       // frame dimension
 }
 
 struct PhysicsCategory {

@@ -1,5 +1,5 @@
 //
-//  BlockNode.swift
+//  ShapeNode.swift
 //  Tetris
 //
 //  Created by Phil Stern on 5/1/20.
@@ -9,7 +9,7 @@
 import UIKit
 import SceneKit
 
-enum BlockType {
+enum ShapeType: Int {
     case line
     case leftL
     case rightL
@@ -17,14 +17,20 @@ enum BlockType {
     case s
     case t
     case z
+    
+    static func random() -> ShapeType {
+        let maxValue = z.rawValue
+        let rand = arc4random_uniform(UInt32(maxValue + 1))
+        return ShapeType(rawValue: Int(rand))!
+    }
 }
 
-class BlockNode: SCNNode {  // BlockNode is the parent node of blocks that make a tetris shape
+class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make a tetris shape
     
     var scene: SCNScene!
-    var type = BlockType.rightL
+    var type = ShapeType.rightL
     
-    init(type: BlockType, scene: SCNScene) {  // pass parent scene, to add joint behaviors to it
+    init(type: ShapeType, scene: SCNScene) {  // input parent scene, to add joint behaviors to it
         self.type = type
         self.scene = scene
         super.init()
@@ -43,58 +49,58 @@ class BlockNode: SCNNode {  // BlockNode is the parent node of blocks that make 
         var joint3 = SCNPhysicsHingeJoint()
         switch type {
         case .line:
-            let block1 = addSquareNode(position: SCNVector3(-1, 0, 0), color: .cyan)
-            let block2 = addSquareNode(position: SCNVector3(0, 0, 0), color: .cyan)
-            let block3 = addSquareNode(position: SCNVector3(1, 0, 0), color: .cyan)
-            let block4 = addSquareNode(position: SCNVector3(2, 0, 0), color: .cyan)
+            let block1 = addBlockNode(position: SCNVector3(-1, 0, 0), color: .cyan)
+            let block2 = addBlockNode(position: SCNVector3(0, 0, 0), color: .cyan)
+            let block3 = addBlockNode(position: SCNVector3(1, 0, 0), color: .cyan)
+            let block4 = addBlockNode(position: SCNVector3(2, 0, 0), color: .cyan)
             joint1 = makeJoint(left: block1, right: block2)
             joint2 = makeJoint(left: block2, right: block3)
             joint3 = makeJoint(left: block3, right: block4)
         case .leftL:
-            let block1 = addSquareNode(position: SCNVector3(-1, 0, 0), color: .blue)
-            let block2 = addSquareNode(position: SCNVector3(0, 0, 0), color: .blue)
-            let block3 = addSquareNode(position: SCNVector3(1, 0, 0), color: .blue)
-            let block4 = addSquareNode(position: SCNVector3(-1, 1, 0), color: .blue)
+            let block1 = addBlockNode(position: SCNVector3(-1, 0, 0), color: .blue)
+            let block2 = addBlockNode(position: SCNVector3(0, 0, 0), color: .blue)
+            let block3 = addBlockNode(position: SCNVector3(1, 0, 0), color: .blue)
+            let block4 = addBlockNode(position: SCNVector3(-1, 1, 0), color: .blue)
             joint1 = makeJoint(left: block1, right: block2)
             joint2 = makeJoint(left: block2, right: block3)
             joint3 = makeJoint(top: block4, bottom: block1)
         case .rightL:
-            let block1 = addSquareNode(position: SCNVector3(-1, 0, 0), color: .orange)
-            let block2 = addSquareNode(position: SCNVector3(0, 0, 0), color: .orange)
-            let block3 = addSquareNode(position: SCNVector3(1, 0, 0), color: .orange)
-            let block4 = addSquareNode(position: SCNVector3(1, 1, 0), color: .orange)
+            let block1 = addBlockNode(position: SCNVector3(-1, 0, 0), color: .orange)
+            let block2 = addBlockNode(position: SCNVector3(0, 0, 0), color: .orange)
+            let block3 = addBlockNode(position: SCNVector3(1, 0, 0), color: .orange)
+            let block4 = addBlockNode(position: SCNVector3(1, 1, 0), color: .orange)
             joint1 = makeJoint(left: block1, right: block2)
             joint2 = makeJoint(left: block2, right: block3)
             joint3 = makeJoint(top: block4, bottom: block3)
         case .cube:
-            let block1 = addSquareNode(position: SCNVector3(0, 0, 0), color: .yellow)
-            let block2 = addSquareNode(position: SCNVector3(1, 0, 0), color: .yellow)
-            let block3 = addSquareNode(position: SCNVector3(0, 1, 0), color: .yellow)
-            let block4 = addSquareNode(position: SCNVector3(1, 1, 0), color: .yellow)
+            let block1 = addBlockNode(position: SCNVector3(0, 0, 0), color: .yellow)
+            let block2 = addBlockNode(position: SCNVector3(1, 0, 0), color: .yellow)
+            let block3 = addBlockNode(position: SCNVector3(0, 1, 0), color: .yellow)
+            let block4 = addBlockNode(position: SCNVector3(1, 1, 0), color: .yellow)
             joint1 = makeJoint(left: block1, right: block2)
             joint2 = makeJoint(left: block3, right: block4)
             joint3 = makeJoint(top: block3, bottom: block1)
         case .s:
-            let block1 = addSquareNode(position: SCNVector3(-1, 0, 0), color: .green)
-            let block2 = addSquareNode(position: SCNVector3(0, 0, 0), color: .green)
-            let block3 = addSquareNode(position: SCNVector3(0, 1, 0), color: .green)
-            let block4 = addSquareNode(position: SCNVector3(1, 1, 0), color: .green)
+            let block1 = addBlockNode(position: SCNVector3(-1, 0, 0), color: .green)
+            let block2 = addBlockNode(position: SCNVector3(0, 0, 0), color: .green)
+            let block3 = addBlockNode(position: SCNVector3(0, 1, 0), color: .green)
+            let block4 = addBlockNode(position: SCNVector3(1, 1, 0), color: .green)
             joint1 = makeJoint(left: block1, right: block2)
             joint2 = makeJoint(left: block3, right: block4)
             joint3 = makeJoint(top: block3, bottom: block2)
         case .t:
-            let block1 = addSquareNode(position: SCNVector3(-1, 0, 0), color: .purple)
-            let block2 = addSquareNode(position: SCNVector3(0, 0, 0), color: .purple)
-            let block3 = addSquareNode(position: SCNVector3(1, 0, 0), color: .purple)
-            let block4 = addSquareNode(position: SCNVector3(0, 1, 0), color: .purple)
+            let block1 = addBlockNode(position: SCNVector3(-1, 0, 0), color: .purple)
+            let block2 = addBlockNode(position: SCNVector3(0, 0, 0), color: .purple)
+            let block3 = addBlockNode(position: SCNVector3(1, 0, 0), color: .purple)
+            let block4 = addBlockNode(position: SCNVector3(0, 1, 0), color: .purple)
             joint1 = makeJoint(left: block1, right: block2)
             joint2 = makeJoint(left: block2, right: block3)
             joint3 = makeJoint(top: block4, bottom: block2)
         case .z:
-            let block1 = addSquareNode(position: SCNVector3(0, 0, 0), color: .red)
-            let block2 = addSquareNode(position: SCNVector3(1, 0, 0), color: .red)
-            let block3 = addSquareNode(position: SCNVector3(-1, 1, 0), color: .red)
-            let block4 = addSquareNode(position: SCNVector3(0, 1, 0), color: .red)
+            let block1 = addBlockNode(position: SCNVector3(0, 0, 0), color: .red)
+            let block2 = addBlockNode(position: SCNVector3(1, 0, 0), color: .red)
+            let block3 = addBlockNode(position: SCNVector3(-1, 1, 0), color: .red)
+            let block4 = addBlockNode(position: SCNVector3(0, 1, 0), color: .red)
             joint1 = makeJoint(left: block1, right: block2)
             joint2 = makeJoint(left: block3, right: block4)
             joint3 = makeJoint(top: block4, bottom: block1)
@@ -104,11 +110,11 @@ class BlockNode: SCNNode {  // BlockNode is the parent node of blocks that make 
         scene.physicsWorld.addBehavior(joint3)
     }
     
-    private func addSquareNode(position: SCNVector3, color: UIColor) -> SCNNode {
-        let block = SCNBox(width: Constants.squareSize,
-                           height: Constants.squareSize,
-                           length: Constants.squareThickness,
-                           chamferRadius: 0.1 * Constants.squareSize)
+    private func addBlockNode(position: SCNVector3, color: UIColor) -> SCNNode {
+        let block = SCNBox(width: Constants.blockSize,
+                           height: Constants.blockSize,
+                           length: Constants.blockThickness,
+                           chamferRadius: 0.1 * Constants.blockSize)
         block.firstMaterial?.diffuse.contents = color
         let blockNode = SCNNode(geometry: block)
         blockNode.name = "Block Node"
@@ -120,6 +126,7 @@ class BlockNode: SCNNode {  // BlockNode is the parent node of blocks that make 
         return blockNode
     }
     
+    // use hinge joint to keep blocks together
     private func makeJoint(left: SCNNode, right: SCNNode) -> SCNPhysicsHingeJoint {
         return SCNPhysicsHingeJoint(bodyA: left.physicsBody!, axisA: SCNVector3(0, 0, 1), anchorA: SCNVector3(0.5, 0, 0),
                                     bodyB: right.physicsBody!, axisB: SCNVector3(0, 0, 1), anchorB: SCNVector3(-0.5, 0, 0))
