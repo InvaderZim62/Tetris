@@ -12,7 +12,7 @@ import SceneKit
 
 struct Constants {
     static let blockSpacing: CGFloat = 1
-    static let blockSize: CGFloat = 0.97
+    static let blockSize: CGFloat = 0.97 * Constants.blockSpacing  // slightly smaller, to prevent continuous contact detection
     static let backgroundThickness: CGFloat = 0.1
     static let blockThickness: CGFloat = 0.5
     static let cameraDistance: CGFloat = 22
