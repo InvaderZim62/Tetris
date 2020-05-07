@@ -81,6 +81,13 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         let translation = recognizer.translation(in: scnView)  // units: screen points
         fallingShape.position.x = panStartLocation + Float(translation.x * 17 / view.frame.width)  // empirically derived
         fallingShape.position.x = round(fallingShape.position.x) + 0.5
+        
+        // limit position laterally to stay within board edges (doesn't work when shape is rotated)
+        let leftBoardEdge = BoardScene.positionFor(row: 0, col: 0)
+        let minShapePositionX = leftBoardEdge.x - Float(fallingShape.type.xRange().min) + 1
+        let rightBoardEdge = BoardScene.positionFor(row: 0, col: Constants.blocksPerBase)
+        let maxShapePositionX = rightBoardEdge.x - Float(fallingShape.type.xRange().max) - 2
+        fallingShape.position.x = max(min(fallingShape.position.x, maxShapePositionX), minShapePositionX)
     }
     
     private func spawnRandomShape() {
@@ -131,6 +138,18 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + Constants.respawnDelay) {
             if !self.isShapeFalling {
                 self.spawnRandomShape()
+            }
+        }
+        // pws: temp code for debugging
+        if let bodyA = contact.nodeA.physicsBody, let bodyB = contact.nodeB.physicsBody {
+            let contactMask = bodyA.categoryBitMask | bodyB.categoryBitMask
+            if contactMask == (PhysicsCategory.Block | PhysicsCategory.Frame) {
+                print(contact.nodeA.position, contact.nodeB.position)
+                print("contact block to frame")
+            } else if contactMask == PhysicsCategory.Block {
+                print("contact block to block")
+            } else if contactMask == PhysicsCategory.Frame {
+                print("contact frame to frame")
             }
         }
     }

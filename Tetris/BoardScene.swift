@@ -27,11 +27,11 @@ class BoardScene: SCNScene {
         for row in 0..<Constants.blocksPerSide {
             for col in 0..<Constants.blocksPerBase {
                 if row == 0 || row == Constants.blocksPerSide - 1 || col == 0 || col == Constants.blocksPerBase - 1 {
-                    _ = addEdgeBlockNode(position: positionFor(row: row, col: col), color: .gray)
+                    _ = addEdgeBlockNode(position: BoardScene.positionFor(row: row, col: col), color: .gray)
                 }
             }
         }
-        spawnPosition = positionFor(row: Constants.blocksPerSide - 3, col: Constants.blocksPerBase / 2)  // near top center of board
+        spawnPosition = BoardScene.positionFor(row: Constants.blocksPerSide - 3, col: Constants.blocksPerBase / 2)  // near top center of board
     }
     
     func spawnRandomShape() -> ShapeNode {
@@ -77,9 +77,11 @@ class BoardScene: SCNScene {
         return blockNode
     }
 
-    private func positionFor(row: Int, col: Int) -> SCNVector3 {
-        let rowOffset = CGFloat(Constants.blocksPerSide) / 2 - 0.5  // middle of board is origin
-        let colOffset = CGFloat(Constants.blocksPerBase) / 2 - 0.5  // middle of board is origin
+    // return position in scene coordinates (origin in center of boardScene)
+    // from row, col (origin in lower left corner)
+    static func positionFor(row: Int, col: Int) -> SCNVector3 {
+        let rowOffset = CGFloat(Constants.blocksPerSide) / 2 - 0.5
+        let colOffset = CGFloat(Constants.blocksPerBase) / 2 - 0.5
         return SCNVector3((CGFloat(col) - colOffset) * Constants.blockSpacing,
                           (CGFloat(row) - rowOffset) * Constants.blockSpacing,
                           0)
