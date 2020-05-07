@@ -37,6 +37,7 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
     var fallingShape: ShapeNode!
     var isShapeFalling = false
     var fallDuration = 10.0  // seconds
+    var panStartLocation: Float = 0.0
 
     override var shouldAutorotate: Bool {
         return true
@@ -58,13 +59,8 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         scnView.addGestureRecognizer(tapGesture)
         
-        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
-        swipeLeft.direction = .left
-        scnView.addGestureRecognizer(swipeLeft)
-        
-        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
-        swipeRight.direction = .right
-        scnView.addGestureRecognizer(swipeRight)
+        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
+        scnView.addGestureRecognizer(panGesture)
 
         boardScene.physicsWorld.contactDelegate = self
     }
@@ -74,19 +70,17 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         spawnRandomShape()
     }
     
-    @objc func handleTap(_ recognizer: UITapGestureRecognizer) {
-        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, -.pi/2, 0, 0, 1)  // rotate shape 90 deg clockwise
+    @objc func handleTap(recognizer: UITapGestureRecognizer) {
+        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)  // rotate shape 90 deg CCW
     }
-    
-    @objc func handleSwipe(_ recognizer: UISwipeGestureRecognizer) {
-        switch recognizer.direction {
-        case .left:
-            fallingShape.position.x -= 1
-        case .right:
-            fallingShape.position.x += 1
-        default:
-            break
+        
+    @objc func handlePan(recognizer: UIPanGestureRecognizer) {
+        if recognizer.state == .began {
+            panStartLocation = fallingShape.position.x
         }
+        let translation = recognizer.translation(in: scnView)
+        fallingShape.position.x = panStartLocation + Float(translation.x / 24)  // 24 scales scene coords to screen points
+        fallingShape.position.x = round(fallingShape.position.x) + 0.5
     }
     
     private func spawnRandomShape() {
