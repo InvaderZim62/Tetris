@@ -18,6 +18,7 @@ struct Constants {
     static let cameraDistance: CGFloat = 22
     static let blocksPerBase = 12       // frame dimension
     static let blocksPerSide = 22       // frame dimension
+    static let respawnDelay = 0.3       // seconds
 }
 
 struct PhysicsCategory {
@@ -32,6 +33,9 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
     var cameraNode: SCNNode!
 
     let boardScene = BoardScene()
+    
+    var fallingShape: ShapeNode!
+    var isShapeFalling = false
 
     override var shouldAutorotate: Bool {
         return true
@@ -40,6 +44,8 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
     override var prefersStatusBarHidden: Bool {
         return true
     }
+    
+    // MARK: - Start of code
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,24 +56,24 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         scnView.addGestureRecognizer(tapGesture)
-        
+
         boardScene.physicsWorld.contactDelegate = self
     }
     
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        spawnRandomShape()
+    }
+    
     @objc func handleTap(_ gestureRecognize: UIGestureRecognizer) {
-        // check what node was tapped, and rotate it
-        let location = gestureRecognize.location(in: scnView)
-        let hitResults = scnView.hitTest(location, options: nil)
-        if hitResults.count > 0 {
-            let result = hitResults[0]
-            if let parent = result.node.parent {  // parent is the collection of nodes that makes up the tetris shape
-                if let parentName = parent.name {
-                    print(parentName)
-                    parent.transform = SCNMatrix4Rotate(parent.transform, -.pi/2, 0, 0, 1)
-                    parent.physicsBody?.resetTransform()  // pws: doesn't enable rotation (rotation doesn't work if blocks are .dynamic)???
-                }
-            }
-        }
+        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, -.pi/2, 0, 0, 1)  // rotate shape 90 deg clockwise
+    }
+    
+    private func spawnRandomShape() {
+        fallingShape = boardScene.spawnRandomShape()
+        let moveDown = SCNAction.move(by: SCNVector3(0, -25, 0), duration: 4)  // doesn't stop on contact with blocks or edges
+        fallingShape.runAction(moveDown)                                       // (all .kinematic), but does rotate when tapped
+        isShapeFalling = true
     }
     
     private func setupView() {
@@ -103,20 +109,12 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
     // MARK: - SCNPhysicsContactDelegate
     
     func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
-        if let bodyA = contact.nodeA.physicsBody, let bodyB = contact.nodeB.physicsBody {
-            let contactMask = bodyA.categoryBitMask | bodyB.categoryBitMask
-            if contactMask == (PhysicsCategory.Block | PhysicsCategory.Frame) {
-                print("contact block to frame")
-                boardScene.rootNode.childNodes.forEach { $0.removeAllActions() }
-                contact.nodeA.position.y = round(contact.nodeA.position.y) + 0.09  // correct for overshoot in -y (need to correct other blocks)
-            } else if contactMask == PhysicsCategory.Block {
-                print("contact block to block")
-                boardScene.rootNode.childNodes.forEach { $0.removeAllActions() }  // stop all blocks from moving
-//                bodyA.contactTestBitMask = PhysicsCategory.None  // pws: don't need to remove contact bit mask... contacts stop
-                contact.nodeA.position.y = round(contact.nodeA.position.y) + 0.09  // correct for overshoot in -y (need to correct other blocks)
-                print(contact.nodeA.position, contact.nodeB.position)
-            } else if contactMask == PhysicsCategory.Frame {
-                print("contact frame to frame")
+        fallingShape.removeAllActions()  // stop shape from falling
+        isShapeFalling = false
+        // contacts come in groups, wait until all are done, then spawn new shape once
+        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.respawnDelay) {
+            if !self.isShapeFalling {
+                self.spawnRandomShape()
             }
         }
     }

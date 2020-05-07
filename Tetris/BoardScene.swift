@@ -10,6 +10,8 @@ import UIKit
 import SceneKit
 
 class BoardScene: SCNScene {
+    
+    var spawnPosition = SCNVector3()
 
     func setup() {
         background.contents = "Background_Diffuse.png"
@@ -29,14 +31,12 @@ class BoardScene: SCNScene {
                 }
             }
         }
-        
-        _ = addShapeNode(type: .s, position: SCNVector3(-1.5, 8.5, 0))
-        let zBlock = addShapeNode(type: .z, position: SCNVector3(2.5, 5.5, 0))
-//        _ = addShapeNode(type: .t, position: SCNVector3(0.5, 2.5, 0))
-        _ = addShapeNode(type: .cube, position: SCNVector3(-4.5, 3.5, 0))
-        
-        let moveDown = SCNAction.move(by: SCNVector3(0, -25, 0), duration: 4)  // doesn't stop on contact with blocks or edges
-        zBlock.runAction(moveDown)                                             // (all .kinematic), but does rotate when tapped
+        spawnPosition = positionFor(row: Constants.blocksPerSide - 3, col: Constants.blocksPerBase / 2)  // near top center of board
+    }
+    
+    func spawnRandomShape() -> ShapeNode {
+        let shapeNode = addShapeNode(type: ShapeType.random(), position: spawnPosition)
+        return shapeNode
     }
     
     private func addShapeNode(type: ShapeType, position: SCNVector3) -> ShapeNode {
