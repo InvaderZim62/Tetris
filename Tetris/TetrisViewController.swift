@@ -36,6 +36,7 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
     
     var fallingShape: ShapeNode!
     var isShapeFalling = false
+    var fallDuration = 10.0  // seconds
 
     override var shouldAutorotate: Bool {
         return true
@@ -54,8 +55,16 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         setupCamera()
         setupLight()
         
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         scnView.addGestureRecognizer(tapGesture)
+        
+        let swipeLeft = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
+        swipeLeft.direction = .left
+        scnView.addGestureRecognizer(swipeLeft)
+        
+        let swipeRight = UISwipeGestureRecognizer(target: self, action: #selector(handleSwipe))
+        swipeRight.direction = .right
+        scnView.addGestureRecognizer(swipeRight)
 
         boardScene.physicsWorld.contactDelegate = self
     }
@@ -65,16 +74,29 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         spawnRandomShape()
     }
     
-    @objc func handleTap(_ gestureRecognize: UIGestureRecognizer) {
+    @objc func handleTap(_ recognizer: UITapGestureRecognizer) {
         fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, -.pi/2, 0, 0, 1)  // rotate shape 90 deg clockwise
+    }
+    
+    @objc func handleSwipe(_ recognizer: UISwipeGestureRecognizer) {
+        switch recognizer.direction {
+        case .left:
+            fallingShape.position.x -= 1
+        case .right:
+            fallingShape.position.x += 1
+        default:
+            break
+        }
     }
     
     private func spawnRandomShape() {
         fallingShape = boardScene.spawnRandomShape()
-        let moveDown = SCNAction.move(by: SCNVector3(0, -25, 0), duration: 4)  // doesn't stop on contact with blocks or edges
-        fallingShape.runAction(moveDown)                                       // (all .kinematic), but does rotate when tapped
+        let moveDown = SCNAction.move(by: SCNVector3(0, -25, 0), duration: fallDuration)
+        fallingShape.runAction(moveDown)
         isShapeFalling = true
     }
+    
+    // MARK: - Setup
     
     private func setupView() {
         scnView = self.view as? SCNView
