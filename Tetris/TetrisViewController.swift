@@ -76,10 +76,10 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
         if recognizer.state == .began {
-            panStartLocation = fallingShape.position.x
+            panStartLocation = fallingShape.position.x  // units: scene coords
         }
-        let translation = recognizer.translation(in: scnView)
-        fallingShape.position.x = panStartLocation + Float(translation.x / 24)  // 24 scales scene coords to screen points
+        let translation = recognizer.translation(in: scnView)  // units: screen points
+        fallingShape.position.x = panStartLocation + Float(translation.x * 17 / view.frame.width)  // empirically derived
         fallingShape.position.x = round(fallingShape.position.x) + 0.5
     }
     
