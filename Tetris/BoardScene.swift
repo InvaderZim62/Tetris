@@ -72,7 +72,6 @@ class BoardScene: SCNScene {
         blockNode.position = position
         blockNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         blockNode.physicsBody?.categoryBitMask = PhysicsCategory.Frame
-        blockNode.physicsBody?.contactTestBitMask = PhysicsCategory.Block | PhysicsCategory.Frame  // pws: may not need this (added to blocks)
         rootNode.addChildNode(blockNode)
         return blockNode
     }

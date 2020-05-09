@@ -70,8 +70,9 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         spawnRandomShape()
     }
     
+    // rotate falling shape 90 deg CCW when tapped
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)  // rotate shape 90 deg CCW
+        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)
     }
         
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
@@ -137,20 +138,32 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         // contacts come in groups, wait until all are done, then spawn new shape once
         DispatchQueue.main.asyncAfter(deadline: .now() + Constants.respawnDelay) {
             if !self.isShapeFalling {
-                self.spawnRandomShape()
+                self.spawnRandomShape()  // this sets isShapeFalling = true
+                print("------------")
             }
         }
+
         // pws: temp code for debugging
         if let bodyA = contact.nodeA.physicsBody, let bodyB = contact.nodeB.physicsBody {
             let contactMask = bodyA.categoryBitMask | bodyB.categoryBitMask
             if contactMask == (PhysicsCategory.Block | PhysicsCategory.Frame) {
-                print(contact.nodeA.position, contact.nodeB.position)
-                print("contact block to frame")
+                print("\ncontact block to frame")
             } else if contactMask == PhysicsCategory.Block {
-                print("contact block to block")
+                print("\ncontact block to block")
             } else if contactMask == PhysicsCategory.Frame {
                 print("contact frame to frame")
+            } else {
+                print("contact undefined")
             }
         }
+        
+        print(contact.nodeA.parent?.name ?? "", contact.nodeA.name!, contact.nodeA.worldPosition)
+        print(contact.nodeB.parent?.name ?? "", contact.nodeB.name!, contact.nodeB.worldPosition)
+        print("contact pt.: ", contact.contactPoint)
+        
+        let worldPositionA = contact.nodeA.worldPosition
+        let worldPositionB = contact.nodeB.worldPosition
+        let contactAngle = atan2(worldPositionB.y - worldPositionA.y, worldPositionB.x - worldPositionA.x) * 57.3
+        print("contact angle: \(contactAngle)")
     }
 }
