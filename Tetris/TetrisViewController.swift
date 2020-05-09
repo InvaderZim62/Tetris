@@ -68,7 +68,7 @@ class TetrisViewController: UIViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         scnView.addGestureRecognizer(tapGesture)
         
-        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))  // pws: may need to disable pan, while spawning new shape?
+        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
         scnView.addGestureRecognizer(panGesture)
     }
     
@@ -124,8 +124,8 @@ class TetrisViewController: UIViewController {
         // Note: While the pan continues, translation continuously provides the screen position
         // relative to the starting point (in points).
         let translation = recognizer.translation(in: scnView)
-        var potentialPositionX = panStartLocation + Float(translation.x * 17 / view.frame.width)  // empirically derived
-        potentialPositionX = round(potentialPositionX) + 0.5  // pws: assumes blockSpacing = 1 (fix use of round)
+        var potentialPositionX = panStartLocation + Float(translation.x * Constants.blockSpacing * 17 / view.frame.width)  // empirically derived
+        potentialPositionX = (floor(potentialPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
         if potentialPositionX < fallingShape.position.x {
             if !isFallingShapeContactingOn(screenSide: .left) {
                 fallingShape.position.x -= Float(Constants.blockSpacing)  // just move one position at a time, to avoid overshooting edges
