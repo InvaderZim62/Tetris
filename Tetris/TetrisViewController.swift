@@ -69,6 +69,7 @@ class TetrisViewController: UIViewController {
 
     private func spawnRandomShape() {
         fallingShape = boardScene.spawnRandomShape()
+        panStartLocation = fallingShape.position.x
         isShapeFalling = true
         startSimulation()
     }
@@ -131,7 +132,6 @@ class TetrisViewController: UIViewController {
         let translation = recognizer.translation(in: scnView)  // units: screen points
         var potentialPositionX = panStartLocation + Float(translation.x * 17 / view.frame.width)  // empirically derived
         potentialPositionX = round(potentialPositionX) + 0.5  // pws: assumes blockSpacing = 1 (fix use of round)
-        print(fallingShape.position.x, translation.x, potentialPositionX)
         if potentialPositionX < fallingShape.position.x {
             if !isFallingShapeContactingOn(side: .left) {
                 fallingShape.position.x = potentialPositionX

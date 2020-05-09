@@ -41,7 +41,7 @@ class BlockNode: SCNNode {
     
     private func addBumperTo(side: Side) -> SCNNode {
         let bumper = SCNSphere(radius: 0.1)
-        bumper.firstMaterial?.diffuse.contents = UIColor.red
+        bumper.firstMaterial?.diffuse.contents = UIColor.clear
         let bumperNode = SCNNode(geometry: bumper)
         switch side {
         case .left:

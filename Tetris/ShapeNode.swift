@@ -30,17 +30,6 @@ enum ShapeType: Int {
         let rand = arc4random_uniform(UInt32(maxValue + 1))
         return ShapeType(rawValue: Int(rand))!
     }
-    
-    func xRange() -> (min: Int, max: Int) {
-        switch self {
-        case .line:
-            return (-1, 2)
-        case .leftL, .rightL, .s, .t, .z:
-            return (-1, 1)
-        case .cube:
-            return (0, 1)
-        }
-    }
 }
 
 class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make a tetris shape
