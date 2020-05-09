@@ -41,6 +41,7 @@ class TetrisViewController: UIViewController {
     let boardScene = BoardScene()
 
     var simulationTimer = Timer()
+    var panGesture = UIPanGestureRecognizer()
     var rendererUpdated = false  // use to prevent multiple pan gesture between rederer updates
     var fallingShape: ShapeNode!
     var isShapeFalling = false
@@ -67,7 +68,7 @@ class TetrisViewController: UIViewController {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         scnView.addGestureRecognizer(tapGesture)
         
-        let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
+        panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))  // pws: may need to disable pan, while spawning new shape?
         scnView.addGestureRecognizer(panGesture)
     }
     
@@ -83,6 +84,7 @@ class TetrisViewController: UIViewController {
     private func spawnRandomShape() {
         fallingShape = boardScene.spawnRandomShape()
         panStartLocation = fallingShape.position.x
+        panGesture.isEnabled = true
         startSimulation()
     }
     
@@ -101,6 +103,7 @@ class TetrisViewController: UIViewController {
         } else {
             // shape reached bottom, re-spawn new shape
             simulationTimer.invalidate()
+            panGesture.isEnabled = false  // cancel any existing panGesture
             spawnRandomShape()
         }
     }
