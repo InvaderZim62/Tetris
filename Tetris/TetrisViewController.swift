@@ -5,6 +5,11 @@
 //  Created by Phil Stern on 5/1/20.
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
+//  Note: handlePan can be called multiple times before the physics engine updates, causing fallingShape.position.x
+//  to be changed several time, without the shape moving on screen.  The contactTest in isFallingShapeContactingOn()
+//  seems to use the on-screen position, potentially allowing handlePan to move fallingShape into the edge blocks.
+//  I fixed this by preventing handlePan from running consecutively before the render look updates (var renderUpdated).
+//
 
 import UIKit
 import QuartzCore
@@ -36,6 +41,7 @@ class TetrisViewController: UIViewController {
     let boardScene = BoardScene()
 
     var simulationTimer = Timer()
+    var rendererUpdated = false  // use to prevent multiple pan gesture between rederer updates
     var fallingShape: ShapeNode!
     var isShapeFalling = false
     var frameTime = 0.3  // seconds
@@ -77,7 +83,6 @@ class TetrisViewController: UIViewController {
     private func spawnRandomShape() {
         fallingShape = boardScene.spawnRandomShape()
         panStartLocation = fallingShape.position.x
-        isShapeFalling = true
         startSimulation()
     }
     
@@ -88,17 +93,83 @@ class TetrisViewController: UIViewController {
     }
     
     // execute one simulation step
-    // move falling shape, if not blocked by bottom edge or another shape
     @objc func updateSimulation() {
-        boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevalute possible contacts
+        boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to re-evalute possible contacts
         if !isFallingShapeContactingOn(screenSide: .bottom) {
+            // move one space down (handlePan handles moving laterally)
             fallingShape.position.y -= Float(Constants.blockSpacing)
         } else {
+            // shape reached bottom, re-spawn new shape
             simulationTimer.invalidate()
             spawnRandomShape()
         }
     }
     
+    // MARK: - Gesture Recognizers
+    
+    // rotate falling shape 90 deg CCW when tapped
+    @objc func handleTap(recognizer: UITapGestureRecognizer) {
+        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)
+    }
+    
+    @objc func handlePan(recognizer: UIPanGestureRecognizer) {
+        guard rendererUpdated else { return }  // con't allow consecutive calls to handlePan without the renderer running
+        rendererUpdated = false
+        if recognizer.state == .began {
+            panStartLocation = fallingShape.position.x  // units: scene coords
+        }
+        // Note: While the pan continues, translation continuously provides the screen position
+        // relative to the starting point (in points).
+        let translation = recognizer.translation(in: scnView)
+        var potentialPositionX = panStartLocation + Float(translation.x * 17 / view.frame.width)  // empirically derived
+        potentialPositionX = round(potentialPositionX) + 0.5  // pws: assumes blockSpacing = 1 (fix use of round)
+        if potentialPositionX < fallingShape.position.x {
+            if !isFallingShapeContactingOn(screenSide: .left) {
+                fallingShape.position.x -= Float(Constants.blockSpacing)  // just move one position at a time, to avoid overshooting edges
+            }
+        } else if potentialPositionX > fallingShape.position.x {
+            if !isFallingShapeContactingOn(screenSide: .right) {
+                fallingShape.position.x += Float(Constants.blockSpacing)
+            }
+        }
+    }
+    
+    // MARK: - Setup
+    
+    private func setupView() {
+        scnView = self.view as? SCNView
+        scnView.showsStatistics = false  // true: show GPU resource usage and frames-per-second along bottom of scene
+        scnView.allowsCameraControl = false  // false: move camera programmatically
+        scnView.autoenablesDefaultLighting = false  // false: disable default (ambient) light, if another light soure is specified
+        scnView.isPlaying = true  // true: prevent SceneKit from entering a "paused" state, if there isn't anything to animate
+        scnView.scene = boardScene
+        scnView.delegate = self  // pws: temporary
+    }
+    
+    private func setupCamera() {
+        cameraNode = SCNNode()
+        cameraNode.camera = SCNCamera()
+        cameraNode.position = SCNVector3(0, 0, Constants.cameraDistance)
+        boardScene.rootNode.addChildNode(cameraNode)
+    }
+    
+    private func setupLight() {
+        let lightNode = SCNNode()
+        lightNode.light = SCNLight()
+        lightNode.light!.type = .omni
+        lightNode.position = SCNVector3(x: 0, y: 10, z: 10)
+        boardScene.rootNode.addChildNode(lightNode)
+
+        let ambientLightNode = SCNNode()
+        ambientLightNode.light = SCNLight()
+        ambientLightNode.light!.type = .ambient
+        ambientLightNode.light!.color = UIColor.darkGray
+        boardScene.rootNode.addChildNode(ambientLightNode)
+    }
+    
+    // MARK: - Utility Functions
+    
+    // determine if any bumpers on the falling shape are contacting another block or edge
     private func isFallingShapeContactingOn(screenSide: ScreenSide) -> Bool {
         var contactingBumper: SCNNode!
         for node in fallingShape.childNodes {
@@ -160,61 +231,10 @@ class TetrisViewController: UIViewController {
         }
         return false
     }
-    
-    // MARK: - Gesture Recognizers
-    
-    // rotate falling shape 90 deg CCW when tapped
-    @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)
-    }
-        
-    @objc func handlePan(recognizer: UIPanGestureRecognizer) {
-        if recognizer.state == .began {
-            panStartLocation = fallingShape.position.x  // units: scene coords
-        }
-        let translation = recognizer.translation(in: scnView)  // units: screen points  // pws: limit this to prevent moving too fast (going through blocks)
-        var potentialPositionX = panStartLocation + Float(translation.x * 17 / view.frame.width)  // empirically derived
-        potentialPositionX = round(potentialPositionX) + 0.5  // pws: assumes blockSpacing = 1 (fix use of round)
-        if potentialPositionX < fallingShape.position.x {
-            if !isFallingShapeContactingOn(screenSide: .left) {
-                fallingShape.position.x = potentialPositionX
-            }
-        } else if potentialPositionX > fallingShape.position.x {
-            if !isFallingShapeContactingOn(screenSide: .right) {
-                fallingShape.position.x = potentialPositionX
-            }
-        }
-    }
-    
-    // MARK: - Setup
-    
-    private func setupView() {
-        scnView = self.view as? SCNView
-        scnView.showsStatistics = false  // true: show GPU resource usage and frames-per-second along bottom of scene
-        scnView.allowsCameraControl = false  // false: move camera programmatically
-        scnView.autoenablesDefaultLighting = false  // false: disable default (ambient) light, if another light soure is specified
-        scnView.isPlaying = true  // true: prevent SceneKit from entering a "paused" state, if there isn't anything to animate
-        scnView.scene = boardScene
-    }
-    
-    private func setupCamera() {
-        cameraNode = SCNNode()
-        cameraNode.camera = SCNCamera()
-        cameraNode.position = SCNVector3(0, 0, Constants.cameraDistance)
-        boardScene.rootNode.addChildNode(cameraNode)
-    }
-    
-    private func setupLight() {
-        let lightNode = SCNNode()
-        lightNode.light = SCNLight()
-        lightNode.light!.type = .omni
-        lightNode.position = SCNVector3(x: 0, y: 10, z: 10)
-        boardScene.rootNode.addChildNode(lightNode)
+}
 
-        let ambientLightNode = SCNNode()
-        ambientLightNode.light = SCNLight()
-        ambientLightNode.light!.type = .ambient
-        ambientLightNode.light!.color = UIColor.darkGray
-        boardScene.rootNode.addChildNode(ambientLightNode)
+extension TetrisViewController: SCNSceneRendererDelegate {
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        rendererUpdated = true
     }
 }
