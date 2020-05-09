@@ -10,6 +10,13 @@ import UIKit
 import QuartzCore
 import SceneKit
 
+enum ScreenSide: Int {
+    case left
+    case right
+    case top
+    case bottom
+}
+
 struct Constants {
     static let blockSpacing: CGFloat = 1
     static let blockSize: CGFloat = 0.97 * Constants.blockSpacing  // slightly smaller, to prevent continuous contact detection
@@ -84,7 +91,7 @@ class TetrisViewController: UIViewController {
     // move falling shape, if not blocked by bottom edge or another shape
     @objc func updateSimulation() {
         boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevalute possible contacts
-        if !isFallingShapeContactingOn(side: .bottom) {
+        if !isFallingShapeContactingOn(screenSide: .bottom) {
             fallingShape.position.y -= Float(Constants.blockSpacing)
         } else {
             simulationTimer.invalidate()
@@ -92,19 +99,55 @@ class TetrisViewController: UIViewController {
         }
     }
     
-    private func isFallingShapeContactingOn(side: Side) -> Bool {
+    private func isFallingShapeContactingOn(screenSide: ScreenSide) -> Bool {
         var contactingBumper: SCNNode!
         for node in fallingShape.childNodes {
             if let blockNode = node as? BlockNode {
-                switch side {
+                switch screenSide {
                 case .left:
-                    contactingBumper = blockNode.leftBumper
+                    switch fallingShape.rotationDegrees {
+                    case 90:
+                        contactingBumper = blockNode.topBumper
+                    case 180:
+                        contactingBumper = blockNode.rightBumper
+                    case -90:
+                        contactingBumper = blockNode.bottomBumper
+                    default:
+                        contactingBumper = blockNode.leftBumper
+                    }
                 case .right:
-                    contactingBumper = blockNode.rightBumper
+                    switch fallingShape.rotationDegrees {
+                    case 90:
+                        contactingBumper = blockNode.bottomBumper
+                    case 180:
+                        contactingBumper = blockNode.leftBumper
+                    case -90:
+                        contactingBumper = blockNode.topBumper
+                    default:
+                        contactingBumper = blockNode.rightBumper
+                    }
                 case .top:
-                    contactingBumper = blockNode.topBumper
+                    switch fallingShape.rotationDegrees {
+                    case 90:
+                        contactingBumper = blockNode.rightBumper
+                    case 180:
+                        contactingBumper = blockNode.bottomBumper
+                    case -90:
+                        contactingBumper = blockNode.leftBumper
+                    default:
+                        contactingBumper = blockNode.topBumper
+                    }
                 case .bottom:
-                    contactingBumper = blockNode.bottomBumper
+                    switch fallingShape.rotationDegrees {
+                    case 90:
+                        contactingBumper = blockNode.leftBumper
+                    case 180:
+                        contactingBumper = blockNode.topBumper
+                    case -90:
+                        contactingBumper = blockNode.rightBumper
+                    default:
+                        contactingBumper = blockNode.bottomBumper
+                    }
                 }
                 let contactingNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
                 for contactingNode in contactingNodes {
@@ -129,15 +172,15 @@ class TetrisViewController: UIViewController {
         if recognizer.state == .began {
             panStartLocation = fallingShape.position.x  // units: scene coords
         }
-        let translation = recognizer.translation(in: scnView)  // units: screen points
+        let translation = recognizer.translation(in: scnView)  // units: screen points  // pws: limit this to prevent moving too fast (going through blocks)
         var potentialPositionX = panStartLocation + Float(translation.x * 17 / view.frame.width)  // empirically derived
         potentialPositionX = round(potentialPositionX) + 0.5  // pws: assumes blockSpacing = 1 (fix use of round)
         if potentialPositionX < fallingShape.position.x {
-            if !isFallingShapeContactingOn(side: .left) {
+            if !isFallingShapeContactingOn(screenSide: .left) {
                 fallingShape.position.x = potentialPositionX
             }
         } else if potentialPositionX > fallingShape.position.x {
-            if !isFallingShapeContactingOn(side: .right) {
+            if !isFallingShapeContactingOn(screenSide: .right) {
                 fallingShape.position.x = potentialPositionX
             }
         }

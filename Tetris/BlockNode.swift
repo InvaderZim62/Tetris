@@ -11,6 +11,13 @@ import SceneKit
 
 class BlockNode: SCNNode {
 
+    enum BlockSide: Int {
+        case left
+        case right
+        case top
+        case bottom
+    }
+
     var leftBumper: SCNNode!
     var rightBumper: SCNNode!
     var topBumper: SCNNode!
@@ -39,7 +46,7 @@ class BlockNode: SCNNode {
         bottomBumper = addBumperTo(side: .bottom)
     }
     
-    private func addBumperTo(side: Side) -> SCNNode {
+    private func addBumperTo(side: BlockSide) -> SCNNode {
         let bumper = SCNSphere(radius: 0.1)
         bumper.firstMaterial?.diffuse.contents = UIColor.clear
         let bumperNode = SCNNode(geometry: bumper)

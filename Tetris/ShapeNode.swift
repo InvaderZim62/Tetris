@@ -9,13 +9,6 @@
 import UIKit
 import SceneKit
 
-enum Side: Int {
-    case left
-    case right
-    case top
-    case bottom
-}
-
 enum ShapeType: Int {
     case line
     case leftL
@@ -46,6 +39,21 @@ class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setup()
+    }
+        
+    var rotationDegrees: Int {
+        return Int(eulerAngles.z * 180 / .pi)
+//        if abs(eulerAngles.z) < 0.1 {
+//            return 0
+//        } else if abs(eulerAngles.z - .pi / 2) < 0.1 {
+//            return 90
+//        } else if abs(eulerAngles.z - .pi) < 0.1 {
+//            return 180
+//        } else if abs(eulerAngles.z + .pi / 2) < 0.1 {
+//            return 270
+//        } else {
+//            return Int(eulerAngles.z)
+//        }
     }
 
     func setup() {
