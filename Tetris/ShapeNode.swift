@@ -9,6 +9,13 @@
 import UIKit
 import SceneKit
 
+enum Side: Int {
+    case left
+    case right
+    case top
+    case bottom
+}
+
 enum ShapeType: Int {
     case line
     case leftL
@@ -39,7 +46,7 @@ enum ShapeType: Int {
 class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make a tetris shape
     
     var type = ShapeType.rightL
-    
+
     init(type: ShapeType) {
         self.type = type
         super.init()
@@ -93,17 +100,8 @@ class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make 
     }
     
     private func addBlockNode(position: SCNVector3, color: UIColor) {
-        let block = SCNBox(width: Constants.blockSize,
-                           height: Constants.blockSize,
-                           length: Constants.blockThickness,
-                           chamferRadius: 0.1 * Constants.blockSize)
-        block.firstMaterial?.diffuse.contents = color
-        let blockNode = SCNNode(geometry: block)
-        blockNode.name = "Block Node"
+        let blockNode = BlockNode(color: color)
         blockNode.position = position
-        blockNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
-        blockNode.physicsBody?.categoryBitMask = PhysicsCategory.Block  // must be added to each block of tetris shape
-        blockNode.physicsBody?.contactTestBitMask = PhysicsCategory.Block | PhysicsCategory.Frame
         addChildNode(blockNode)
     }
 }

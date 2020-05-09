@@ -32,6 +32,8 @@ class BoardScene: SCNScene {
             }
         }
         spawnPosition = BoardScene.positionFor(row: Constants.blocksPerSide - 3, col: Constants.blocksPerBase / 2)  // near top center of board
+//        spawnPosition = BoardScene.positionFor(row: Constants.blocksPerSide - 3, col: 2)  // near top left of board
+//        spawnPosition = BoardScene.positionFor(row: 1, col: Constants.blocksPerBase / 2)  // near bottom center of board
     }
     
     func spawnRandomShape() -> ShapeNode {
@@ -71,7 +73,6 @@ class BoardScene: SCNScene {
         blockNode.name = "Edge Block"
         blockNode.position = position
         blockNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
-        blockNode.physicsBody?.categoryBitMask = PhysicsCategory.Frame
         rootNode.addChildNode(blockNode)
         return blockNode
     }

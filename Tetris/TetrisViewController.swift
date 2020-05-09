@@ -21,22 +21,17 @@ struct Constants {
     static let respawnDelay = 0.3       // seconds
 }
 
-struct PhysicsCategory {
-    static let None: Int = 0
-    static let Block: Int = 1 << 0
-    static let Frame: Int = 1 << 1
-}
-
-class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
+class TetrisViewController: UIViewController {
     
     var scnView: SCNView!
     var cameraNode: SCNNode!
 
     let boardScene = BoardScene()
-    
+
+    var simulationTimer = Timer()
     var fallingShape: ShapeNode!
     var isShapeFalling = false
-    var fallDuration = 10.0  // seconds
+    var frameTime = 0.3  // seconds
     var panStartLocation: Float = 0.0
 
     override var shouldAutorotate: Bool {
@@ -61,14 +56,68 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
         scnView.addGestureRecognizer(panGesture)
-
-        boardScene.physicsWorld.contactDelegate = self
     }
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         spawnRandomShape()
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        simulationTimer.invalidate()  // stop timer
+    }
+
+    private func spawnRandomShape() {
+        fallingShape = boardScene.spawnRandomShape()
+        isShapeFalling = true
+        startSimulation()
+    }
+    
+    private func startSimulation() {
+        simulationTimer = Timer.scheduledTimer(timeInterval: frameTime, target: self,
+                                               selector: #selector(updateSimulation),
+                                               userInfo: nil, repeats: true)
+    }
+    
+    // execute one simulation step
+    // move falling shape, if not blocked by bottom edge or another shape
+    @objc func updateSimulation() {
+        boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevalute possible contacts
+        if !isFallingShapeContactingOn(side: .bottom) {
+            fallingShape.position.y -= Float(Constants.blockSpacing)
+        } else {
+            simulationTimer.invalidate()
+            spawnRandomShape()
+        }
+    }
+    
+    private func isFallingShapeContactingOn(side: Side) -> Bool {
+        var contactingBumper: SCNNode!
+        for node in fallingShape.childNodes {
+            if let blockNode = node as? BlockNode {
+                switch side {
+                case .left:
+                    contactingBumper = blockNode.leftBumper
+                case .right:
+                    contactingBumper = blockNode.rightBumper
+                case .top:
+                    contactingBumper = blockNode.topBumper
+                case .bottom:
+                    contactingBumper = blockNode.bottomBumper
+                }
+                let contactingNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
+                for contactingNode in contactingNodes {
+                    // disregard bumpers that are contacting other blocks within its own shape
+                    if contactingNode.nodeA.parent != fallingShape && contactingNode.nodeB.parent != fallingShape {
+                        return true
+                    }
+                }
+            }
+        }
+        return false
+    }
+    
+    // MARK: - Gesture Recognizers
     
     // rotate falling shape 90 deg CCW when tapped
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
@@ -80,22 +129,18 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
             panStartLocation = fallingShape.position.x  // units: scene coords
         }
         let translation = recognizer.translation(in: scnView)  // units: screen points
-        fallingShape.position.x = panStartLocation + Float(translation.x * 17 / view.frame.width)  // empirically derived
-        fallingShape.position.x = round(fallingShape.position.x) + 0.5
-        
-        // limit position laterally to stay within board edges (doesn't work when shape is rotated)
-        let leftBoardEdge = BoardScene.positionFor(row: 0, col: 0)
-        let minShapePositionX = leftBoardEdge.x - Float(fallingShape.type.xRange().min) + 1
-        let rightBoardEdge = BoardScene.positionFor(row: 0, col: Constants.blocksPerBase)
-        let maxShapePositionX = rightBoardEdge.x - Float(fallingShape.type.xRange().max) - 2
-        fallingShape.position.x = max(min(fallingShape.position.x, maxShapePositionX), minShapePositionX)
-    }
-    
-    private func spawnRandomShape() {
-        fallingShape = boardScene.spawnRandomShape()
-        let moveDown = SCNAction.move(by: SCNVector3(0, -25, 0), duration: fallDuration)
-        fallingShape.runAction(moveDown)
-        isShapeFalling = true
+        var potentialPositionX = panStartLocation + Float(translation.x * 17 / view.frame.width)  // empirically derived
+        potentialPositionX = round(potentialPositionX) + 0.5  // pws: assumes blockSpacing = 1 (fix use of round)
+        print(fallingShape.position.x, translation.x, potentialPositionX)
+        if potentialPositionX < fallingShape.position.x {
+            if !isFallingShapeContactingOn(side: .left) {
+                fallingShape.position.x = potentialPositionX
+            }
+        } else if potentialPositionX > fallingShape.position.x {
+            if !isFallingShapeContactingOn(side: .right) {
+                fallingShape.position.x = potentialPositionX
+            }
+        }
     }
     
     // MARK: - Setup
@@ -128,42 +173,5 @@ class TetrisViewController: UIViewController, SCNPhysicsContactDelegate {
         ambientLightNode.light!.type = .ambient
         ambientLightNode.light!.color = UIColor.darkGray
         boardScene.rootNode.addChildNode(ambientLightNode)
-    }
-    
-    // MARK: - SCNPhysicsContactDelegate
-    
-    func physicsWorld(_ world: SCNPhysicsWorld, didBegin contact: SCNPhysicsContact) {
-        fallingShape.removeAllActions()  // stop shape from falling
-        isShapeFalling = false
-        // contacts come in groups, wait until all are done, then spawn new shape once
-        DispatchQueue.main.asyncAfter(deadline: .now() + Constants.respawnDelay) {
-            if !self.isShapeFalling {
-                self.spawnRandomShape()  // this sets isShapeFalling = true
-                print("------------")
-            }
-        }
-
-        // pws: temp code for debugging
-        if let bodyA = contact.nodeA.physicsBody, let bodyB = contact.nodeB.physicsBody {
-            let contactMask = bodyA.categoryBitMask | bodyB.categoryBitMask
-            if contactMask == (PhysicsCategory.Block | PhysicsCategory.Frame) {
-                print("\ncontact block to frame")
-            } else if contactMask == PhysicsCategory.Block {
-                print("\ncontact block to block")
-            } else if contactMask == PhysicsCategory.Frame {
-                print("contact frame to frame")
-            } else {
-                print("contact undefined")
-            }
-        }
-        
-        print(contact.nodeA.parent?.name ?? "", contact.nodeA.name!, contact.nodeA.worldPosition)
-        print(contact.nodeB.parent?.name ?? "", contact.nodeB.name!, contact.nodeB.worldPosition)
-        print("contact pt.: ", contact.contactPoint)
-        
-        let worldPositionA = contact.nodeA.worldPosition
-        let worldPositionB = contact.nodeB.worldPosition
-        let contactAngle = atan2(worldPositionB.y - worldPositionA.y, worldPositionB.x - worldPositionA.x) * 57.3
-        print("contact angle: \(contactAngle)")
     }
 }
