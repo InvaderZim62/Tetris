@@ -27,7 +27,7 @@ class BoardScene: SCNScene {
         for row in 0..<Constants.blocksPerSide {
             for col in 0..<Constants.blocksPerBase {
                 if row == 0 || row == Constants.blocksPerSide - 1 || col == 0 || col == Constants.blocksPerBase - 1 {
-                    _ = addEdgeBlockNode(position: BoardScene.positionFor(row: row, col: col), color: .gray)
+                    addEdgeBlockNode(position: BoardScene.positionFor(row: row, col: col), color: .gray)
                 }
             }
         }
@@ -93,7 +93,7 @@ class BoardScene: SCNScene {
         rootNode.addChildNode(blockNode)
     }
     
-    private func addEdgeBlockNode(position: SCNVector3, color: UIColor) -> SCNNode {
+    private func addEdgeBlockNode(position: SCNVector3, color: UIColor) {
         let block = SCNBox(width: Constants.blockSize,
                            height: Constants.blockSize,
                            length: Constants.blockThickness,
@@ -104,7 +104,6 @@ class BoardScene: SCNScene {
         blockNode.position = position
         blockNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         rootNode.addChildNode(blockNode)
-        return blockNode
     }
 
     // return position in scene coordinates (origin in center of boardScene)
