@@ -39,6 +39,38 @@ class BoardScene: SCNScene {
         return shapeNode
     }
     
+    func removeFullRows() {
+        for row in 1..<Constants.blocksPerSide - 1 {
+            var isRowFull = true
+            var rowNodes = [SCNNode]()
+            for col in 1..<Constants.blocksPerBase - 1 {
+                if let blockNode = getBlockNodeAt(row: row, col: col) {
+                    rowNodes.append(blockNode)
+                } else {
+                    isRowFull = false
+                    break
+                }
+            }
+            if isRowFull {
+                rowNodes.forEach { $0.removeFromParentNode() }
+            }
+        }
+    }
+    
+    private func getBlockNodeAt(row: Int, col: Int) -> SCNNode? {
+        let shapeNodes = rootNode.childNodes.filter { $0.name == "Shape Node" }
+        for shapeNode in shapeNodes {
+            let blockNodes = shapeNode.childNodes
+            for blockNode in blockNodes {
+                let blockNodePosition = shapeNode.convertPosition(blockNode.position, to: rootNode)  // in rootNode coordinates
+                if blockNodePosition == BoardScene.positionFor(row: row, col: col) {  // utilites.swift
+                    return blockNode
+                }
+            }
+        }
+        return nil
+    }
+    
     private func addShapeNode(type: ShapeType, position: SCNVector3) -> ShapeNode {
         let blockNode = ShapeNode(type: type)
         blockNode.position = position

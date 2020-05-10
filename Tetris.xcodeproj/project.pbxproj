@@ -15,6 +15,7 @@
 		4AB87AC3245CDCED00DB6525 /* BoardScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AC2245CDCED00DB6525 /* BoardScene.swift */; };
 		4AB87AC5245CE80900DB6525 /* ShapeNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AC4245CE80900DB6525 /* ShapeNode.swift */; };
 		4AC62FE824664EBE0059816E /* BlockNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC62FE724664EBE0059816E /* BlockNode.swift */; };
+		4AC62FEA246777640059816E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC62FE9246777630059816E /* Utilities.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -28,6 +29,7 @@
 		4AB87AC2245CDCED00DB6525 /* BoardScene.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BoardScene.swift; sourceTree = "<group>"; };
 		4AB87AC4245CE80900DB6525 /* ShapeNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeNode.swift; sourceTree = "<group>"; };
 		4AC62FE724664EBE0059816E /* BlockNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockNode.swift; sourceTree = "<group>"; };
+		4AC62FE9246777630059816E /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,6 +67,7 @@
 				4AB87AC2245CDCED00DB6525 /* BoardScene.swift */,
 				4AB87AC4245CE80900DB6525 /* ShapeNode.swift */,
 				4AC62FE724664EBE0059816E /* BlockNode.swift */,
+				4AC62FE9246777630059816E /* Utilities.swift */,
 				4AB87AC1245CD0C400DB6525 /* Supporting Files */,
 				4AB87ABB245CD09900DB6525 /* Info.plist */,
 			);
@@ -152,6 +155,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				4AC62FEA246777640059816E /* Utilities.swift in Sources */,
 				4AB87AC3245CDCED00DB6525 /* BoardScene.swift in Sources */,
 				4AC62FE824664EBE0059816E /* BlockNode.swift in Sources */,
 				4AB87AC5245CE80900DB6525 /* ShapeNode.swift in Sources */,

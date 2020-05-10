@@ -101,9 +101,10 @@ class TetrisViewController: UIViewController {
             // move one space down (handlePan handles moving laterally)
             fallingShape.position.y -= Float(Constants.blockSpacing)
         } else {
-            // shape reached bottom, re-spawn new shape
+            // shape reached bottom, remove rows and re-spawn new shape
             simulationTimer.invalidate()
             panGesture.isEnabled = false  // cancel any existing panGesture
+            boardScene.removeFullRows()
             spawnRandomShape()
         }
     }
@@ -146,7 +147,7 @@ class TetrisViewController: UIViewController {
         scnView.autoenablesDefaultLighting = false  // false: disable default (ambient) light, if another light soure is specified
         scnView.isPlaying = true  // true: prevent SceneKit from entering a "paused" state, if there isn't anything to animate
         scnView.scene = boardScene
-        scnView.delegate = self  // pws: temporary
+        scnView.delegate = self  // needed for renderer, below
     }
     
     private func setupCamera() {
