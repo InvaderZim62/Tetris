@@ -39,12 +39,13 @@ class BoardScene: SCNScene {
         return shapeNode
     }
     
-    func moveBlockNodesToBoardSceneFrom(shapeNode: ShapeNode) {
+    func moveBlockNodesToRootNodeFrom(shapeNode: ShapeNode) {
         let blockNodes = shapeNode.childNodes
         for blockNode in blockNodes {
-            let blockNodePosition = shapeNode.convertPosition(blockNode.position, to: rootNode)  // in rootNode coordinates
+            // need blockNode position in rootNote coordinates (currently position is relative to parent shapeNode)
+            let blockNodeRootPosition = shapeNode.convertPosition(blockNode.position, to: rootNode)
             blockNode.removeFromParentNode()
-            blockNode.position = blockNodePosition
+            blockNode.position = blockNodeRootPosition
             rootNode.addChildNode(blockNode)
         }
     }
@@ -81,11 +82,11 @@ class BoardScene: SCNScene {
     }
 
     private func moveBlocksDownIfAbove(removedRow: Int) {
-        let blockNodes = rootNode.childNodes.filter {
+        let blockNodesToMoveDown = rootNode.childNodes.filter {
             $0.name == "Block Node" &&
             $0.position.y > BoardScene.positionFor(row: removedRow, col: 0).y
         }
-        blockNodes.forEach { $0.position.y -= 1 }
+        blockNodesToMoveDown.forEach { $0.position.y -= 1 }
     }
     
     private func addShapeNode(type: ShapeType, position: SCNVector3) -> ShapeNode {
