@@ -39,7 +39,18 @@ class BoardScene: SCNScene {
         return shapeNode
     }
     
+    func moveBlockNodesToBoardSceneFrom(shapeNode: ShapeNode) {
+        let blockNodes = shapeNode.childNodes
+        for blockNode in blockNodes {
+            let blockNodePosition = shapeNode.convertPosition(blockNode.position, to: rootNode)  // in rootNode coordinates
+            blockNode.removeFromParentNode()
+            blockNode.position = blockNodePosition
+            rootNode.addChildNode(blockNode)
+        }
+    }
+    
     func removeFullRows() {
+        var removedRows = [Int]()
         for row in 1..<Constants.blocksPerSide - 1 {
             var isRowFull = true
             var rowNodes = [SCNNode]()
@@ -52,23 +63,29 @@ class BoardScene: SCNScene {
                 }
             }
             if isRowFull {
+                removedRows.append(row)
                 rowNodes.forEach { $0.removeFromParentNode() }
             }
         }
+        removedRows.reversed().forEach { moveBlocksDownIfAbove(removedRow: $0) }
     }
     
     private func getBlockNodeAt(row: Int, col: Int) -> SCNNode? {
-        let shapeNodes = rootNode.childNodes.filter { $0.name == "Shape Node" }
-        for shapeNode in shapeNodes {
-            let blockNodes = shapeNode.childNodes
-            for blockNode in blockNodes {
-                let blockNodePosition = shapeNode.convertPosition(blockNode.position, to: rootNode)  // in rootNode coordinates
-                if blockNodePosition == BoardScene.positionFor(row: row, col: col) {  // utilites.swift
-                    return blockNode
-                }
+        let blockNodes = rootNode.childNodes.filter { $0.name == "Block Node" }
+        for blockNode in blockNodes {
+            if blockNode.position == BoardScene.positionFor(row: row, col: col) {  // utilites.swift
+                return blockNode
             }
         }
         return nil
+    }
+
+    private func moveBlocksDownIfAbove(removedRow: Int) {
+        let blockNodes = rootNode.childNodes.filter {
+            $0.name == "Block Node" &&
+            $0.position.y > BoardScene.positionFor(row: removedRow, col: 0).y
+        }
+        blockNodes.forEach { $0.position.y -= 1 }
     }
     
     private func addShapeNode(type: ShapeType, position: SCNVector3) -> ShapeNode {
