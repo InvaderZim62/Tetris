@@ -104,7 +104,7 @@ class TetrisViewController: UIViewController {
             // shape reached bottom, remove rows and re-spawn new shape
             simulationTimer.invalidate()
             panGesture.isEnabled = false  // cancel any existing panGesture
-            boardScene.moveBlockNodesToRootNodeFrom(shapeNode: fallingShape)
+            boardScene.separateBlocksFrom(shapeNode: fallingShape)
             boardScene.removeFullRows()
             spawnRandomShape()
         }

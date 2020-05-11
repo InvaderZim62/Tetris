@@ -39,7 +39,8 @@ class BoardScene: SCNScene {
         return shapeNode
     }
     
-    func moveBlockNodesToRootNodeFrom(shapeNode: ShapeNode) {
+    // separate blocks to allow easier removing and dropping of rows
+    func separateBlocksFrom(shapeNode: ShapeNode) {
         let blockNodes = shapeNode.childNodes
         for blockNode in blockNodes {
             // need blockNode position in rootNote coordinates (currently position is relative to parent shapeNode)
@@ -68,7 +69,7 @@ class BoardScene: SCNScene {
                 rowNodes.forEach { $0.removeFromParentNode() }
             }
         }
-        removedRows.reversed().forEach { moveBlocksDownIfAbove(removedRow: $0) }
+        removedRows.reversed().forEach { closeRemovedRows($0) }
     }
     
     private func getBlockNodeAt(row: Int, col: Int) -> SCNNode? {
@@ -81,7 +82,7 @@ class BoardScene: SCNScene {
         return nil
     }
 
-    private func moveBlocksDownIfAbove(removedRow: Int) {
+    private func closeRemovedRows(_ removedRow: Int) {
         let blockNodesToMoveDown = rootNode.childNodes.filter {
             $0.name == "Block Node" &&
             $0.position.y > BoardScene.positionFor(row: removedRow, col: 0).y
@@ -124,7 +125,7 @@ class BoardScene: SCNScene {
         rootNode.addChildNode(blockNode)
     }
 
-    // return position in scene coordinates (origin in center of boardScene)
+    // return position in rootNode coordinates (origin in center of boardScene)
     // from row, col (origin in lower left corner)
     static func positionFor(row: Int, col: Int) -> SCNVector3 {
         let rowOffset = CGFloat(Constants.blocksPerSide) / 2 - 0.5
