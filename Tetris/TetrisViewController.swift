@@ -31,6 +31,8 @@ struct Constants {
     static let blocksPerBase = 12       // frame dimension
     static let blocksPerSide = 22       // frame dimension
     static let respawnDelay = 0.3       // seconds
+    static let fastFallTimeFrame = 0.01 // seconds
+    static let fastFallPanThreshold: CGFloat = 30.0  // y-points above which fast drop start
 }
 
 class TetrisViewController: UIViewController {
@@ -42,10 +44,12 @@ class TetrisViewController: UIViewController {
 
     var simulationTimer = Timer()
     var panGesture = UIPanGestureRecognizer()
-    var rendererUpdated = false  // use to prevent multiple pan gesture between rederer updates
+    var isRendererUpdated = false  // use to prevent multiple pan gesture between rederer updates
     var fallingShape: ShapeNode!
     var isShapeFalling = false
-    var frameTime = 0.3  // seconds
+    var isFastFalling = false
+    var frameTime = 1.0  // seconds, affect speed of shapes dropping
+    var savedFrameTime = 1.0  // saved during fast drop
     var panStartLocation: Float = 0.0
 
     override var shouldAutorotate: Bool {
@@ -65,9 +69,11 @@ class TetrisViewController: UIViewController {
         setupCamera()
         setupLight()
         
+        // add tap gesture to rotate shapes
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         scnView.addGestureRecognizer(tapGesture)
         
+        // add pan gesture to move shapes laterally
         panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
         scnView.addGestureRecognizer(panGesture)
     }
@@ -96,14 +102,15 @@ class TetrisViewController: UIViewController {
     
     // execute one simulation step
     @objc func updateSimulation() {
-        boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to re-evalute possible contacts
         if !isFallingShapeContactingOn(screenSide: .bottom) {
             // move one space down (handlePan handles moving laterally)
             fallingShape.position.y -= Float(Constants.blockSpacing)
         } else {
             // shape reached bottom, remove rows and re-spawn new shape
-            simulationTimer.invalidate()
-            panGesture.isEnabled = false  // cancel any existing panGesture
+            simulationTimer.invalidate()  // restart in spawnRandomShape()
+            panGesture.isEnabled = false  // cancel any existing panGesture, so it doesn't carry over to next falling shape
+            frameTime = savedFrameTime
+            isFastFalling = false
             boardScene.separateBlocksFrom(shapeNode: fallingShape)
             boardScene.removeFullRows()
             spawnRandomShape()
@@ -117,25 +124,41 @@ class TetrisViewController: UIViewController {
         fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)
     }
     
+    // slide shape left or right when panned
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
-        guard rendererUpdated else { return }  // con't allow consecutive calls to handlePan without the renderer running
-        rendererUpdated = false
+        guard isRendererUpdated else { return }  // don't allow consecutive calls to handlePan between renderer updates
+        isRendererUpdated = false
+//        print("P", terminator: "")
+        guard !isFastFalling else { return }  // don't assess panning, while fast falling
         if recognizer.state == .began {
             panStartLocation = fallingShape.position.x  // units: scene coords
         }
         // Note: While the pan continues, translation continuously provides the screen position
         // relative to the starting point (in points).
         let translation = recognizer.translation(in: scnView)
-        var potentialPositionX = panStartLocation + Float(translation.x * Constants.blockSpacing * 17 / view.frame.width)  // empirically derived
-        potentialPositionX = (floor(potentialPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
-        if potentialPositionX < fallingShape.position.x {
-            if !isFallingShapeContactingOn(screenSide: .left) {
-                fallingShape.position.x -= Float(Constants.blockSpacing)  // just move one position at a time, to avoid overshooting edges
+//        print(translation)
+        if abs(translation.x) > abs(translation.y) {
+            // pan across, move shape laterally
+            var potentialPositionX = panStartLocation + Float(translation.x * Constants.blockSpacing * 17 / view.frame.width)  // empirically derived
+            potentialPositionX = (floor(potentialPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
+            if potentialPositionX < fallingShape.position.x {
+                if !isFallingShapeContactingOn(screenSide: .left) {
+//                    print("moveLeft")
+                    fallingShape.position.x -= Float(Constants.blockSpacing)  // just move one position at a time, to avoid overshooting edges
+                }
+            } else if potentialPositionX > fallingShape.position.x {
+                if !isFallingShapeContactingOn(screenSide: .right) {
+//                    print("moveRight")
+                    fallingShape.position.x += Float(Constants.blockSpacing)
+                }
             }
-        } else if potentialPositionX > fallingShape.position.x {
-            if !isFallingShapeContactingOn(screenSide: .right) {
-                fallingShape.position.x += Float(Constants.blockSpacing)
-            }
+        } else if translation.y > Constants.fastFallPanThreshold {
+            // pan down, drop shape fast
+            isFastFalling = true
+            savedFrameTime = frameTime
+            frameTime = Constants.fastFallTimeFrame
+            simulationTimer.invalidate()
+            startSimulation()
         }
     }
     
@@ -225,10 +248,13 @@ class TetrisViewController: UIViewController {
                         contactingBumper = blockNode.bottomBumper
                     }
                 }
-                let contactingNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
-                for contactingNode in contactingNodes {
+                boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevalute possible contacts (may not be needed?)
+                let contactedNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
+//                print("(\(fallingShape.rotationDegrees)) check \(screenSide), \(contactedNodes.count) contacts")
+                for contactedNode in contactedNodes {
                     // disregard bumpers that are contacting other blocks within its own shape
-                    if contactingNode.nodeA.parent != fallingShape && contactingNode.nodeB.parent != fallingShape {
+                    if contactedNode.nodeA.parent != fallingShape && contactedNode.nodeB.parent != fallingShape {
+//                        print(" <bump \(screenSide)> ")
                         return true
                     }
                 }
@@ -240,6 +266,7 @@ class TetrisViewController: UIViewController {
 
 extension TetrisViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        rendererUpdated = true
+//        print(".", terminator: "")
+        isRendererUpdated = true
     }
 }

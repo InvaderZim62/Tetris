@@ -28,7 +28,11 @@ enum ShapeType: Int {
 class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make a tetris shape
     
     var type = ShapeType.L
-
+    
+    var rotationDegrees: Int {
+        return Int(round(eulerAngles.z * 180 / .pi))
+    }
+    
     init(type: ShapeType) {
         self.type = type
         super.init()
@@ -40,11 +44,7 @@ class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make 
         super.init(coder: coder)
         setup()
     }
-        
-    var rotationDegrees: Int {
-        return Int(eulerAngles.z * 180 / .pi)
-    }
-
+    
     func setup() {
         switch type {
         case .Line:
@@ -68,7 +68,7 @@ class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make 
             addBlockNode(position: SCNVector3(                       0, Constants.blockSpacing, 0), color: .yellow)
             addBlockNode(position: SCNVector3(  Constants.blockSpacing, Constants.blockSpacing, 0), color: .yellow)
         case .S:
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing,                      0, 0), color: .green)
+            addBlockNode(position: SCNVector3( -Constants.blockSpacing,                      0, 0), color: .green)
             addBlockNode(position: SCNVector3(                       0,                      0, 0), color: .green)
             addBlockNode(position: SCNVector3(                       0, Constants.blockSpacing, 0), color: .green)
             addBlockNode(position: SCNVector3(  Constants.blockSpacing, Constants.blockSpacing, 0), color: .green)
