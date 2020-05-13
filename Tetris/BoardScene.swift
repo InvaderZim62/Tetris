@@ -43,6 +43,7 @@ class BoardScene: SCNScene {
     func separateBlocksFrom(shapeNode: ShapeNode) {
         let blockNodes = shapeNode.childNodes
         for blockNode in blockNodes {
+            blockNode.childNodes.forEach { $0.removeFromParentNode() }  // remove bumpers
             // need blockNode position in rootNote coordinates (currently position is relative to parent shapeNode)
             let blockNodeRootPosition = shapeNode.convertPosition(blockNode.position, to: rootNode)
             blockNode.removeFromParentNode()

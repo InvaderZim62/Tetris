@@ -9,6 +9,10 @@
 import UIKit
 import SceneKit
 
+struct BlockConstants {
+    static let bumperDistanceFactor: CGFloat = 0.8  // * blockSpacing
+}
+
 class BlockNode: SCNNode {
 
     enum BlockSide: Int {
@@ -52,13 +56,13 @@ class BlockNode: SCNNode {
         let bumperNode = SCNNode(geometry: bumper)
         switch side {
         case .left:
-            bumperNode.position = SCNVector3(-0.8 * Constants.blockSize, 0, 0)
+            bumperNode.position = SCNVector3(-BlockConstants.bumperDistanceFactor * Constants.blockSpacing, 0, 0)
         case .right:
-            bumperNode.position = SCNVector3(0.8 * Constants.blockSize, 0, 0)
+            bumperNode.position = SCNVector3(BlockConstants.bumperDistanceFactor * Constants.blockSpacing, 0, 0)
         case .top:
-            bumperNode.position = SCNVector3(0, 0.8 * Constants.blockSize, 0)
+            bumperNode.position = SCNVector3(0, BlockConstants.bumperDistanceFactor * Constants.blockSpacing, 0)
         case .bottom:
-            bumperNode.position = SCNVector3(0, -0.8 * Constants.blockSize, 0)
+            bumperNode.position = SCNVector3(0, -BlockConstants.bumperDistanceFactor * Constants.blockSpacing, 0)
         }
         bumperNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         bumperNode.name = "Bumper"
