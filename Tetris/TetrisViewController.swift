@@ -8,7 +8,15 @@
 //  Note: handlePan can be called multiple times before the physics engine updates, causing fallingShape.position.x
 //  to be changed several time, without the shape moving on screen.  The contactTest in isFallingShapeContactingOn()
 //  seems to use the on-screen position, potentially allowing handlePan to move fallingShape into the edge blocks.
-//  I fixed this by preventing handlePan from running consecutively before the render look updates (var renderUpdated).
+//  I tried fixing this by preventing handlePan from running consecutively before the render look updates (var
+//  renderUpdated).  It helped, but there are stil cases where contactTest returns no contacts when there should be.
+//
+//  Here's the sequence...
+//    1) handlePan computes potentialPosition
+//    2) contactTest is called
+//    3) if no contacts, position is changed by one square
+//    4) wait for physics engine to run
+//    5) repeat
 //
 
 import UIKit
@@ -31,7 +39,7 @@ struct Constants {
     static let blocksPerBase = 12       // frame dimension
     static let blocksPerSide = 22       // frame dimension
     static let respawnDelay = 0.3       // seconds
-    static let fastFallTimeFrame = 0.01 // seconds
+    static let fastFallTimeFrame = 0.02 // seconds
     static let fastFallPanThreshold: CGFloat = 30.0  // y-points above which fast drop start
 }
 
