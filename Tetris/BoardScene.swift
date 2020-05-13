@@ -31,7 +31,7 @@ class BoardScene: SCNScene {
                 }
             }
         }
-        spawnPosition = BoardScene.positionFor(row: Constants.blocksPerSide - 3, col: Constants.blocksPerBase / 2)  // near top center of board
+        spawnPosition = BoardScene.positionFor(row: Constants.blocksPerSide - 2, col: Constants.blocksPerBase / 2)  // near top center of board
     }
     
     func spawnRandomShape() -> ShapeNode {
