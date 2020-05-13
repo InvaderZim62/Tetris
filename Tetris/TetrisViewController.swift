@@ -5,6 +5,11 @@
 //  Created by Phil Stern on 5/1/20.
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
+//  Note: calls to contactTest (or functions that call contactTest) must be made from the renderer loop.
+//  Ealier version of the app called contactTest from a sepatate simulation loop, and from the pan gesture.
+//  This resulted in contactTest returning no contacts, when there should be contacts, resulting in shapes
+//  moving through other blocks.
+//
 
 import UIKit
 import QuartzCore
@@ -43,7 +48,7 @@ class TetrisViewController: UIViewController {
     var isShapeFalling = false
     var isFastFalling = false
     var spawnTime: TimeInterval = 0
-    var frameTime = 1.0  // seconds, affect speed of shapes dropping
+    var frameTime = 1.0  // seconds, affect speed of shapes falling
     var savedFrameTime = 1.0  // saved during fast drop
     var panStartLocation: Float = 0.0
 
@@ -105,14 +110,12 @@ class TetrisViewController: UIViewController {
     func moveShapeAcross() {
         if targetPositionX < fallingShape.position.x {
             if !isFallingShapeContactingOn(screenSide: .left) {
-//                print("moveLeft")
                 fallingShape.position.x -= Float(Constants.blockSpacing)  // just move one position at a time, to avoid overshooting edges
             } else {
                 targetPositionX = fallingShape.position.x
             }
         } else if targetPositionX > fallingShape.position.x {
             if !isFallingShapeContactingOn(screenSide: .right) {
-//                print("moveRight")
                 fallingShape.position.x += Float(Constants.blockSpacing)
             } else {
                 targetPositionX = fallingShape.position.x
@@ -129,7 +132,6 @@ class TetrisViewController: UIViewController {
     
     // move shape left/right when panning across, or fast down when panning down
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
-//        print("P", terminator: "")
         guard !isFastFalling else { return }  // don't assess panning, while fast falling
         if recognizer.state == .began {
             panStartLocation = fallingShape.position.x  // units: scene coords
@@ -239,11 +241,9 @@ class TetrisViewController: UIViewController {
                 }
                 boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevalute possible contacts (may not be needed?)
                 let contactedNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
-//                print("(\(fallingShape.rotationDegrees)) check \(screenSide), \(contactedNodes.count) contacts")
                 for contactedNode in contactedNodes {
                     // disregard bumpers that are contacting other blocks within its own shape
                     if contactedNode.nodeA.parent != fallingShape && contactedNode.nodeB.parent != fallingShape {
-//                        print(" <bump \(screenSide)> ")
                         return true
                     }
                 }
@@ -255,7 +255,6 @@ class TetrisViewController: UIViewController {
 
 extension TetrisViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-//        print(".", terminator: "")
         if isShapeFalling {
             if time > spawnTime {
                 spawnTime = time + frameTime
