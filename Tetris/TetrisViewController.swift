@@ -10,6 +10,42 @@
 //  This resulted in contactTest returning no contacts, when there should be contacts, resulting in shapes
 //  moving through other blocks.
 //
+//  Usefull SCeneKit conversions...
+//
+//    convertPosition   Convert position of node in one reference to another reference
+//
+//                      ex.  let blockNodeRootPosition = fallingShape.convertPosition(blockNode.position, to: boardScene.rootNode)
+//                           blockNode is a child of fallingShape, which is a child of boardScene.rootNode
+//
+//    projectPoint      Convert scene coordinates to screen coordinates
+//
+//                      ex.  let screenPosition = scnView.projectPoint(fallingShape.position)
+//                           fallingShape.position = SCNVector3(0.5, 4.5, 0.0)  // scene coordinates
+//                           screenPosition = SCNVectors(200.6, 215.3, 0.96)    // screen coordinates
+//
+//                      Note: convert grandchild position to child position, before projecting to screen position
+//
+//                      ex.  let blockNodeRootPosition = fallingShape.convertPosition(blockNode.position, to: boardScene.rootNode)
+//                           let screenPosition = scnView.projectPoint(blockNodeRootPosition)
+//
+//    unprojectPoint    Convert screen coordinates to scene coordinates
+//
+//                      ex.  let scenePosition = scnView.unprojectPoint(screenPosition)
+//
+//    hitTest           Return nodes at screen point, if any
+//
+//                      ex.  let hitResults = scnView.hitTest(location, options: nil)  // returns closest node
+//                      -or- let hitResults = scnView.hitTest(location, options: [.searchMode: SCNHitTestSearchMode.all.rawValue])  // returns all nodes
+//                           location = GCPoint(200.6, 215.3)  // screen coordinates
+//                           hitResults = [SCNHitTestResult]   // hitResult[0].node
+//
+//    contactTest       Return nodes contacting input node
+//
+//                      ex.  boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to re-evalute possible contacts (may not be needed?)
+//                           let contactedNodes = boardScene.physicsWorld.contactTest(with: inputNode.physicsBody!, options: nil)
+//                           inputNode is a node at any level within the scene
+//                           contactedNodes = [SCNPhysicsContact]  // contactedNodes[0].nodeA & .nodeB (one being the inputNode)
+//
 
 import UIKit
 import QuartzCore
@@ -141,6 +177,7 @@ class TetrisViewController: UIViewController {
         if abs(translation.x) > abs(translation.y) {
             // pan across, move shape laterally (actual move is in renderer)
             DispatchQueue.main.async {
+                // pws: try unprojectPoint for next line?
                 self.targetPositionX = self.panStartLocation + Float(translation.x * Constants.blockSpacing * 17 / self.view.frame.width)  // empirically derived
                 self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
             }

@@ -5,6 +5,9 @@
 //  Created by Phil Stern on 5/8/20.
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
+//  BlockNode is a colored square block (SCNBox) with clear "bumpers" (scnSpheres) sticking
+//  out from each of the four sides.
+//
 
 import UIKit
 import SceneKit

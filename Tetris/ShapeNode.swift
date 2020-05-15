@@ -5,6 +5,10 @@
 //  Created by Phil Stern on 5/1/20.
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
+//  ShapeTypes            ◻️             ◻️        ◻️◻️       ◻️◻️      ◻️       ◻️◻️
+//    Line: ◻️◻️◻️◻️  J: ◻️◻️◻️  L: ◻️◻️◻️  Cube: ◻️◻️  S: ◻️◻️   T: ◻️◻️◻️  Z:   ◻️◻️
+//    origin:  ^            ^           ^           ^           ^         ^          ^
+//
 
 import UIKit
 import SceneKit
