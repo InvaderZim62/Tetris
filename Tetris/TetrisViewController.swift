@@ -159,11 +159,42 @@ class TetrisViewController: UIViewController {
         }
     }
     
+    // pws: eventually, move falling shape to allow rotation (if possible)
+    private func isShapeBlockedFromRotation() -> Bool {
+        let finalAngle = fallingShape.eulerAngles.z + Float.pi / 2
+        let rotateAroundZ = simd_quatf(angle: finalAngle, axis: SIMD3(0, 0, 1))
+        let transform = simd_float4x4(rotateAroundZ)
+        
+        for blockNode in fallingShape.childNodes {
+            // determine predicted rotated block position (in scene coordinates)
+            let blockNodePosition4 = simd_float4(blockNode.position.x, blockNode.position.y, blockNode.position.z, 0)  // fallingShape coordinates
+            let rotatedPosition = simd_mul(transform, blockNodePosition4)  // fallingShape coordinates
+            let vector3Position = SCNVector3(rotatedPosition.x + fallingShape.position.x,  // scene coordinates
+                                             rotatedPosition.y + fallingShape.position.y,
+                                             rotatedPosition.z + fallingShape.position.z)
+            let screenPosition = scnView.projectPoint(vector3Position)  // 3D screen points
+            let location = CGPoint(x: CGFloat(screenPosition.x), y: CGFloat(screenPosition.y))  // 2D screen points
+            let hitResults = scnView.hitTest(location, options: [.searchMode: SCNHitTestSearchMode.all.rawValue])  // .all = closest to farthest, in order
+            
+            if hitResults.count > 1 {  // ie. if more than background
+                if hitResults[0].node.parent != fallingShape {  // and not part of fallingShape
+                    // contact will occur, if rotated
+                    // try to move falling Shape, to allow rotation
+                    // vector3Position is the position (in scene coordinates) where a contact will occur
+                    return true
+                }
+            }
+        }
+        return false
+    }
+    
     // MARK: - Gesture Recognizers
     
-    // rotate falling shape 90 deg CCW when tapped
+    // rotate falling shape 90 deg CCW when tapped (unless rotation will cause contact with edge, or another block)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)
+        if !isShapeBlockedFromRotation() {
+            fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)
+        }
     }
     
     // move shape left/right when panning across, or fast down when panning down
