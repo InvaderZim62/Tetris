@@ -63,7 +63,7 @@ struct Constants {
     static let blockSize: CGFloat = 0.97 * Constants.blockSpacing  // slightly smaller, to prevent continuous contact detection
     static let backgroundThickness: CGFloat = 0.1
     static let blockThickness: CGFloat = 0.5
-    static let cameraDistance: CGFloat = 22
+    static let cameraDistance: CGFloat = 22 * Constants.blockSpacing
     static let blocksPerBase = 12       // frame dimension
     static let blocksPerSide = 22       // frame dimension
     static let respawnDelay = 0.3       // seconds
@@ -143,7 +143,12 @@ class TetrisViewController: UIViewController {
             frameTime = savedFrameTime
             boardScene.separateBlocksFrom(shapeNode: fallingShape)
             hud.score += 100 * boardScene.removeFullRows()
-            spawnRandomShape()
+            print(fallingShape.position.y)
+            if fallingShape.position.y >= (Float(Constants.blocksPerSide) / 2 - 2.5) * Float(Constants.blockSpacing) {
+                hud.isGameOver = true
+            } else {
+                spawnRandomShape()
+            }
         }
     }
     
@@ -216,7 +221,6 @@ class TetrisViewController: UIViewController {
             isBlocked = isShapeBlockedFromRotation()
             if isBlocked.right {
                 fallingShape.position.x = originalPositionX
-//                print("blocked left-right")
                 return  // can't rotate
             }
         }
@@ -226,7 +230,6 @@ class TetrisViewController: UIViewController {
             isBlocked = isShapeBlockedFromRotation()
             if isBlocked.left {
                 fallingShape.position.x = originalPositionX
-//                print("blocked right-left")
                 return  // can't rotate
             }
         }
