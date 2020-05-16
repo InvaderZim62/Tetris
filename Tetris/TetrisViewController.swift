@@ -67,8 +67,8 @@ struct Constants {
     static let blocksPerBase = 12       // frame dimension
     static let blocksPerSide = 22       // frame dimension
     static let respawnDelay = 0.3       // seconds
-    static let fastFallTimeFrame = 0.01 // seconds
-    static let fastFallPanThreshold: CGFloat = 30.0  // y-points above which fast drop start
+    static let hardDropTimeFrame = 0.01 // seconds
+    static let hardDropPanThreshold: CGFloat = 30.0  // y-points above which hard drop starts
 }
 
 class TetrisViewController: UIViewController {
@@ -81,14 +81,16 @@ class TetrisViewController: UIViewController {
 
     var panGesture = UIPanGestureRecognizer()
     var targetPositionX: Float = 0.0
+    var targetPositionY: Float = 0.0
+    var pastTranslationY: CGFloat = 0.0
     var fallingShape: ShapeNode!
     var isShapeFalling = false
-    var isFastFalling = false
+    var isHardDrop = false
     var isShapeRotating = false
     var nudge: Float = 0.0
     var spawnTime: TimeInterval = 0
     var frameTime = 1.0  // seconds, affect speed of shapes falling
-    var savedFrameTime = 1.0  // saved during fast drop
+    var savedFrameTime = 1.0  // saved during hard drop
     var shapeScreenStartLocation: SCNVector3!
 
     override var shouldAutorotate: Bool {
@@ -126,31 +128,49 @@ class TetrisViewController: UIViewController {
     private func spawnShape() {
         fallingShape = boardScene.spawnShape()
         targetPositionX = fallingShape.position.x  // scene coordinates
+        targetPositionY = fallingShape.position.y  // scene coordinates
         panGesture.isEnabled = true
         isShapeFalling = true
     }
     
-    func moveShapeDown() {
+    func moveShapeDownAutomatically() {
+        guard fallingShape != nil else { return }
         if !isFallingShapeContactingOn(screenSide: .bottom) {
             // move one space down (handlePan handles moving laterally)
             fallingShape.position.y -= Float(Constants.blockSpacing)
         } else {
-            // shape reached bottom, remove rows and re-spawn new shape
-            panGesture.isEnabled = false  // cancel any existing panGesture, so it doesn't carry over to next falling shape
-            isFastFalling = false  // this line must come after disabling panGesture
-            isShapeFalling = false
-            frameTime = savedFrameTime
-            boardScene.separateBlocksFrom(shapeNode: fallingShape)
-            hud.score += 100 * boardScene.removeFullRows()
-            if fallingShape.position.y >= (Float(Constants.blocksPerSide) / 2 - 2.5) * Float(Constants.blockSpacing) {
-                hud.isGameOver = true
-            } else {
-                spawnShape()
-            }
+            handleShapeReachingBottom()
         }
     }
     
+    func moveShapeDownManually() {
+        guard fallingShape != nil else { return }
+        if targetPositionY < fallingShape.position.y {
+            if !isFallingShapeContactingOn(screenSide: .bottom) {
+                fallingShape.position.y -= Float(Constants.blockSpacing)  // just move one position at a time, to avoid overshooting edges
+            } else {
+                handleShapeReachingBottom()
+            }
+        }
+    }
+        
+    private func handleShapeReachingBottom() {
+        // shape reached bottom, remove rows and re-spawn new shape
+        panGesture.isEnabled = false  // cancel any existing panGesture, so it doesn't carry over to next falling shape
+        isHardDrop = false  // this line must come after disabling panGesture
+        isShapeFalling = false
+        frameTime = savedFrameTime
+        boardScene.separateBlocksFrom(shapeNode: fallingShape)  // removes fallingShape from rootNode
+        hud.score += 100 * boardScene.removeFullRows()
+        if fallingShape.position.y >= (Float(Constants.blocksPerSide) / 2 - 2.5) * Float(Constants.blockSpacing) {
+            hud.isGameOver = true
+        } else {
+            spawnShape()
+        }
+    }
+
     func moveShapeAcross() {
+        guard fallingShape != nil else { return }
         if targetPositionX < fallingShape.position.x {
             if !isFallingShapeContactingOn(screenSide: .left) {
                 fallingShape.position.x -= Float(Constants.blockSpacing)  // just move one position at a time, to avoid overshooting edges
@@ -165,7 +185,7 @@ class TetrisViewController: UIViewController {
             }
         }
     }
-    
+
     func rotateShape() {
         isShapeRotating = false
         fallingShape.position.x += nudge  // for some reason, nudge has to be applied again, here (also in handleTap)
@@ -234,30 +254,44 @@ class TetrisViewController: UIViewController {
         isShapeRotating = true
     }
     
-    // move shape left/right when panning across, or fast down when panning down
+    // move shape left/right when panning across, or down when panning down
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
-        guard !isFastFalling else { return }  // don't assess panning, while fast falling
+        guard !isHardDrop else { return }  // don't assess panning, during hard drop
         if recognizer.state == .began {
             shapeScreenStartLocation = scnView.projectPoint(fallingShape.position)
-        }
-        // Note: While the pan continues, translation continuously provides the screen position relative to the starting point (in points).
-        let translation = recognizer.translation(in: scnView)  // delta screen coordinates
-        if abs(translation.x) > abs(translation.y) {
-            // pan across, move shape laterally (actual move is in renderer)
-            DispatchQueue.main.async {
-                let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
-                                                      y: self.shapeScreenStartLocation.y + Float(translation.y),
-                                                      z: self.shapeScreenStartLocation.z)
-                let targetScenePosition = self.scnView.unprojectPoint(targetScreenPosition)
-                self.targetPositionX = targetScenePosition.x  // scene coordinates
-                self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
+            pastTranslationY = 0.0
+        } else if recognizer.state == .changed {
+            targetPositionY = fallingShape.position.y
+            // Note: While the pan continues, translation continuously provides the screen position relative to the starting point (in points).
+            let translation = recognizer.translation(in: scnView)  // delta screen coordinates
+            if abs(translation.x) > abs(translation.y) {
+                // pan across, move shape laterally (actual move is in renderer)
+                DispatchQueue.main.async {
+                    let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
+                                                          y: self.shapeScreenStartLocation.y + Float(translation.y),
+                                                          z: self.shapeScreenStartLocation.z)
+                    let targetScenePosition = self.scnView.unprojectPoint(targetScreenPosition)
+                    self.targetPositionX = targetScenePosition.x  // scene coordinates
+                    self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
+                }
+            } else if translation.y - pastTranslationY > Constants.hardDropPanThreshold {
+                // pan down fast, hard drop
+                isHardDrop = true
+                savedFrameTime = frameTime
+                spawnTime = 0  // force immediate start of dropping in renderer
+                frameTime = Constants.hardDropTimeFrame
+            } else {
+                // pan down slow, drop shape slowly
+                DispatchQueue.main.async {
+                    let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
+                                                          y: self.shapeScreenStartLocation.y + Float(translation.y),
+                                                          z: self.shapeScreenStartLocation.z)
+                    let targetScenePosition = self.scnView.unprojectPoint(targetScreenPosition)
+                    self.targetPositionY = targetScenePosition.y  // scene coordinates
+                    self.targetPositionY = (floor(self.targetPositionY / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
+                }
             }
-        } else if translation.y > Constants.fastFallPanThreshold {
-            // pan down, drop shape fast
-            isFastFalling = true
-            savedFrameTime = frameTime
-            spawnTime = 0  // force immediate start of dropping in renderer
-            frameTime = Constants.fastFallTimeFrame
+            pastTranslationY = translation.y
         }
     }
     
@@ -375,9 +409,10 @@ extension TetrisViewController: SCNSceneRendererDelegate {
         if isShapeFalling {
             if time > spawnTime {
                 spawnTime = time + frameTime
-                moveShapeDown()
+                moveShapeDownAutomatically()
             }
         }
         moveShapeAcross()
+        moveShapeDownManually()
     }
 }

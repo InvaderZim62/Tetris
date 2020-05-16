@@ -62,6 +62,7 @@ class BoardScene: SCNScene {
             blockNode.position = blockNodeRootPosition
             rootNode.addChildNode(blockNode)
         }
+        shapeNode.removeFromParentNode()
     }
     
     func removeFullRows() -> Int {
