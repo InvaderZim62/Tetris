@@ -89,7 +89,7 @@ class TetrisViewController: UIViewController {
     var spawnTime: TimeInterval = 0
     var frameTime = 1.0  // seconds, affect speed of shapes falling
     var savedFrameTime = 1.0  // saved during fast drop
-    var panStartLocation: Float = 0.0
+    var shapeScreenStartLocation: SCNVector3!
 
     override var shouldAutorotate: Bool {
         return true
@@ -125,8 +125,7 @@ class TetrisViewController: UIViewController {
 
     private func spawnShape() {
         fallingShape = boardScene.spawnShape()
-        targetPositionX = fallingShape.position.x  // units: scene coords
-        panStartLocation = fallingShape.position.x
+        targetPositionX = fallingShape.position.x  // scene coordinates
         panGesture.isEnabled = true
         isShapeFalling = true
     }
@@ -239,16 +238,18 @@ class TetrisViewController: UIViewController {
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
         guard !isFastFalling else { return }  // don't assess panning, while fast falling
         if recognizer.state == .began {
-            panStartLocation = fallingShape.position.x  // scene coordinates
+            shapeScreenStartLocation = scnView.projectPoint(fallingShape.position)
         }
         // Note: While the pan continues, translation continuously provides the screen position relative to the starting point (in points).
-        let translation = recognizer.translation(in: scnView)  // screen coordinate
+        let translation = recognizer.translation(in: scnView)  // delta screen coordinates
         if abs(translation.x) > abs(translation.y) {
             // pan across, move shape laterally (actual move is in renderer)
             DispatchQueue.main.async {
-                // pws: try unprojectPoint for next line?
-                let convertScreenToScene = Constants.blockSpacing * 17 / self.view.frame.width  // empirically derived
-                self.targetPositionX = self.panStartLocation + Float(translation.x * convertScreenToScene)
+                let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
+                                                      y: self.shapeScreenStartLocation.y + Float(translation.y),
+                                                      z: self.shapeScreenStartLocation.z)
+                let targetScenePosition = self.scnView.unprojectPoint(targetScreenPosition)
+                self.targetPositionX = targetScenePosition.x  // scene coordinates
                 self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
             }
         } else if translation.y > Constants.fastFallPanThreshold {
