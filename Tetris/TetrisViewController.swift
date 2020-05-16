@@ -63,7 +63,7 @@ struct Constants {
     static let blockSize: CGFloat = 0.97 * Constants.blockSpacing  // slightly smaller, to prevent continuous contact detection
     static let backgroundThickness: CGFloat = 0.1
     static let blockThickness: CGFloat = 0.5
-    static let cameraDistance: CGFloat = 22 * Constants.blockSpacing
+    static let cameraDistance: CGFloat = 23 * Constants.blockSpacing
     static let blocksPerBase = 12       // frame dimension
     static let blocksPerSide = 22       // frame dimension
     static let respawnDelay = 0.3       // seconds
@@ -275,7 +275,7 @@ class TetrisViewController: UIViewController {
     private func setupCamera() {
         cameraNode = SCNNode()
         cameraNode.camera = SCNCamera()
-        cameraNode.position = SCNVector3(0, 0, Constants.cameraDistance)
+        cameraNode.position = SCNVector3(0, Constants.blockSpacing, Constants.cameraDistance)
         boardScene.rootNode.addChildNode(cameraNode)
     }
     

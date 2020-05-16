@@ -16,8 +16,6 @@ class BoardScene: SCNScene {
     func setup() {
         background.contents = "Background_Diffuse.png"
         
-        physicsWorld.gravity = SCNVector3(0, -3, 0)  // gravity in m/s
-        
         // specify positions of block centers
         // origin is center of background, midway through edge blocks
         // x: right (columns), y: up (rows), z: out of screen
