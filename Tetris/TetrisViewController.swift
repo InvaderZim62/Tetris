@@ -83,6 +83,8 @@ class TetrisViewController: UIViewController {
     var fallingShape: ShapeNode!
     var isShapeFalling = false
     var isFastFalling = false
+    var isShapeRotating = false
+    var nudge: Float = 0.0
     var spawnTime: TimeInterval = 0
     var frameTime = 1.0  // seconds, affect speed of shapes falling
     var savedFrameTime = 1.0  // saved during fast drop
@@ -159,8 +161,16 @@ class TetrisViewController: UIViewController {
         }
     }
     
-    // pws: eventually, move falling shape to allow rotation (if possible)
-    private func isShapeBlockedFromRotation() -> Bool {
+    func rotateShape() {
+        isShapeRotating = false
+        fallingShape.position.x += nudge  // for some reason, nudge has to be applied again, here (also in handleTap)
+        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)
+    }
+    
+    private func isShapeBlockedFromRotation() -> (left: Bool, right: Bool) {
+        var isBlockedLeft = false
+        var isBlockedRight = false
+
         let finalAngle = fallingShape.eulerAngles.z + Float.pi / 2
         let rotateAroundZ = simd_quatf(angle: finalAngle, axis: SIMD3(0, 0, 1))
         let transform = simd_float4x4(rotateAroundZ)
@@ -168,33 +178,57 @@ class TetrisViewController: UIViewController {
         for blockNode in fallingShape.childNodes {
             // determine predicted rotated block position (in scene coordinates)
             let blockNodePosition4 = simd_float4(blockNode.position.x, blockNode.position.y, blockNode.position.z, 0)  // fallingShape coordinates
-            let rotatedPosition = simd_mul(transform, blockNodePosition4)  // fallingShape coordinates
-            let vector3Position = SCNVector3(rotatedPosition.x + fallingShape.position.x,  // scene coordinates
-                                             rotatedPosition.y + fallingShape.position.y,
-                                             rotatedPosition.z + fallingShape.position.z)
-            let screenPosition = scnView.projectPoint(vector3Position)  // 3D screen points
-            let location = CGPoint(x: CGFloat(screenPosition.x), y: CGFloat(screenPosition.y))  // 2D screen points
+            let relativeRotatedPosition = simd_mul(transform, blockNodePosition4)  // fallingShape coordinates
+            let absoluteRotatedPosition = SCNVector3(relativeRotatedPosition.x + fallingShape.position.x,  // scene coordinates
+                                                     relativeRotatedPosition.y + fallingShape.position.y,
+                                                     relativeRotatedPosition.z + fallingShape.position.z)
+            let screenPosition = scnView.projectPoint(absoluteRotatedPosition)  // screen coordinates (3D)
+            let location = CGPoint(x: CGFloat(screenPosition.x), y: CGFloat(screenPosition.y))  // screen coordinates (2D)
             let hitResults = scnView.hitTest(location, options: [.searchMode: SCNHitTestSearchMode.all.rawValue])  // .all = closest to farthest, in order
             
-            if hitResults.count > 1 {  // ie. if more than background
-                if hitResults[0].node.parent != fallingShape {  // and not part of fallingShape
-                    // contact will occur, if rotated
-                    // try to move falling Shape, to allow rotation
-                    // vector3Position is the position (in scene coordinates) where a contact will occur
-                    return true
+            if hitResults.count > 1 {  // all blocks are in contact with at least the background
+                if hitResults[0].node.parent != fallingShape {  // ignore contacts with fallingShape
+                    let contactDistance = absoluteRotatedPosition.x - fallingShape.position.x  // scene coordinates
+                    if contactDistance > Float(Constants.blockSpacing / 2) {
+                        isBlockedRight = true
+                    } else if contactDistance < -Float(Constants.blockSpacing / 2) {
+                        isBlockedLeft = true
+                    }
                 }
             }
         }
-        return false
+        return (isBlockedLeft, isBlockedRight)
     }
     
     // MARK: - Gesture Recognizers
     
     // rotate falling shape 90 deg CCW when tapped (unless rotation will cause contact with edge, or another block)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        if !isShapeBlockedFromRotation() {
-            fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)
+        nudge = 0.0
+        var isBlocked = isShapeBlockedFromRotation()
+        if isBlocked.left && isBlocked.right { print("blocked both"); return }  // can't rotate
+        let originalPositionX = fallingShape.position.x
+        while isBlocked.left {
+            nudge += Float(Constants.blockSpacing)
+            fallingShape.position.x += Float(Constants.blockSpacing)
+            isBlocked = isShapeBlockedFromRotation()
+            if isBlocked.right {
+                fallingShape.position.x = originalPositionX
+//                print("blocked left-right")
+                return  // can't rotate
+            }
         }
+        while isBlocked.right {
+            nudge -= Float(Constants.blockSpacing)
+            fallingShape.position.x -= Float(Constants.blockSpacing)
+            isBlocked = isShapeBlockedFromRotation()
+            if isBlocked.left {
+                fallingShape.position.x = originalPositionX
+//                print("blocked right-left")
+                return  // can't rotate
+            }
+        }
+        isShapeRotating = true
     }
     
     // move shape left/right when panning across, or fast down when panning down
@@ -323,6 +357,9 @@ class TetrisViewController: UIViewController {
 
 extension TetrisViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        if isShapeRotating {
+            rotateShape()
+        }
         if isShapeFalling {
             if time > spawnTime {
                 spawnTime = time + frameTime
