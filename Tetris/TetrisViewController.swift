@@ -6,9 +6,9 @@
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
 //  Note: calls to contactTest (or functions that call contactTest) must be made from the renderer loop.
-//  Ealier version of the app called contactTest from a sepatate simulation loop, and from the pan gesture.
-//  This resulted in contactTest returning no contacts, when there should be contacts, resulting in shapes
-//  moving through other blocks.
+//  Ealier versions of the app called contactTest from a sepatate simulation loop, and from the pan gesture.
+//  This resulted in contactTest returning no contacts, when there have been, resulting in shapes moving
+//  through other blocks.
 //
 //  Usefull SCeneKit conversions...
 //
@@ -239,15 +239,16 @@ class TetrisViewController: UIViewController {
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
         guard !isFastFalling else { return }  // don't assess panning, while fast falling
         if recognizer.state == .began {
-            panStartLocation = fallingShape.position.x  // units: scene coords
+            panStartLocation = fallingShape.position.x  // scene coordinates
         }
         // Note: While the pan continues, translation continuously provides the screen position relative to the starting point (in points).
-        let translation = recognizer.translation(in: scnView)
+        let translation = recognizer.translation(in: scnView)  // screen coordinate
         if abs(translation.x) > abs(translation.y) {
             // pan across, move shape laterally (actual move is in renderer)
             DispatchQueue.main.async {
                 // pws: try unprojectPoint for next line?
-                self.targetPositionX = self.panStartLocation + Float(translation.x * Constants.blockSpacing * 17 / self.view.frame.width)  // empirically derived
+                let convertScreenToScene = Constants.blockSpacing * 17 / self.view.frame.width  // empirically derived
+                self.targetPositionX = self.panStartLocation + Float(translation.x * convertScreenToScene)
                 self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
             }
         } else if translation.y > Constants.fastFallPanThreshold {
