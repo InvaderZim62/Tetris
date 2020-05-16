@@ -52,7 +52,7 @@ class BoardScene: SCNScene {
         }
     }
     
-    func removeFullRows() {
+    func removeFullRows() -> Int {
         var removedRows = [Int]()
         for row in 1..<Constants.blocksPerSide - 1 {
             var isRowFull = true
@@ -71,6 +71,7 @@ class BoardScene: SCNScene {
             }
         }
         removedRows.reversed().forEach { closeRemovedRows($0) }
+        return removedRows.count
     }
     
     private func getBlockNodeAt(row: Int, col: Int) -> SCNNode? {

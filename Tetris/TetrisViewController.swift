@@ -77,6 +77,7 @@ class TetrisViewController: UIViewController {
     var cameraNode: SCNNode!
 
     let boardScene = BoardScene()
+    var hud = Hud()
 
     var panGesture = UIPanGestureRecognizer()
     var targetPositionX: Float = 0.0
@@ -106,6 +107,7 @@ class TetrisViewController: UIViewController {
         setupView()
         setupCamera()
         setupLight()
+        setupHud()
         
         // add tap gesture to rotate shapes
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
@@ -140,7 +142,7 @@ class TetrisViewController: UIViewController {
             isShapeFalling = false
             frameTime = savedFrameTime
             boardScene.separateBlocksFrom(shapeNode: fallingShape)
-            boardScene.removeFullRows()
+            hud.score += 100 * boardScene.removeFullRows()
             spawnRandomShape()
         }
     }
@@ -288,6 +290,12 @@ class TetrisViewController: UIViewController {
         boardScene.rootNode.addChildNode(ambientLightNode)
     }
     
+    func setupHud() {
+        hud = Hud(size: view.bounds.size)
+        hud.setup()
+        scnView.overlaySKScene = hud
+    }
+
     // MARK: - Utility Functions
     
     // determine if any bumpers on the falling shape are contacting another block or edge

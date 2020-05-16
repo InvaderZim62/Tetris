@@ -16,6 +16,7 @@
 		4AB87AC5245CE80900DB6525 /* ShapeNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AC4245CE80900DB6525 /* ShapeNode.swift */; };
 		4AC62FE824664EBE0059816E /* BlockNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC62FE724664EBE0059816E /* BlockNode.swift */; };
 		4AC62FEA246777640059816E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC62FE9246777630059816E /* Utilities.swift */; };
+		4AD7D718246F9B5500055E33 /* Hud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AD7D717246F9B5500055E33 /* Hud.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +31,7 @@
 		4AB87AC4245CE80900DB6525 /* ShapeNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeNode.swift; sourceTree = "<group>"; };
 		4AC62FE724664EBE0059816E /* BlockNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockNode.swift; sourceTree = "<group>"; };
 		4AC62FE9246777630059816E /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		4AD7D717246F9B5500055E33 /* Hud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Hud.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +69,7 @@
 				4AB87AC2245CDCED00DB6525 /* BoardScene.swift */,
 				4AB87AC4245CE80900DB6525 /* ShapeNode.swift */,
 				4AC62FE724664EBE0059816E /* BlockNode.swift */,
+				4AD7D717246F9B5500055E33 /* Hud.swift */,
 				4AC62FE9246777630059816E /* Utilities.swift */,
 				4AB87AC1245CD0C400DB6525 /* Supporting Files */,
 				4AB87ABB245CD09900DB6525 /* Info.plist */,
@@ -158,6 +161,7 @@
 				4AC62FEA246777640059816E /* Utilities.swift in Sources */,
 				4AB87AC3245CDCED00DB6525 /* BoardScene.swift in Sources */,
 				4AC62FE824664EBE0059816E /* BlockNode.swift in Sources */,
+				4AD7D718246F9B5500055E33 /* Hud.swift in Sources */,
 				4AB87AC5245CE80900DB6525 /* ShapeNode.swift in Sources */,
 				4AB87AB2245CD09800DB6525 /* TetrisViewController.swift in Sources */,
 				4AB87AAE245CD09800DB6525 /* AppDelegate.swift in Sources */,
