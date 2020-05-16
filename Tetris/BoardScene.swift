@@ -11,7 +11,10 @@ import SceneKit
 
 class BoardScene: SCNScene {
     
-    var spawnPosition = SCNVector3()
+    private var spawnPosition = SCNVector3()
+    private var previewPosition = SCNVector3()
+    private var nextShape: ShapeNode!
+    private var nextShapeType: ShapeType!
 
     func setup() {
         background.contents = "Background_Diffuse.png"
@@ -30,11 +33,22 @@ class BoardScene: SCNScene {
             }
         }
         spawnPosition = BoardScene.positionFor(row: Constants.blocksPerSide - 3, col: Constants.blocksPerBase / 2)  // near top center of board
+        previewPosition = BoardScene.positionFor(row: Constants.blocksPerSide + 1, col: Constants.blocksPerBase - 2)  // above right side of board
+        previewNextShape()
     }
     
-    func spawnRandomShape() -> ShapeNode {
-        let shapeNode = addShapeNode(type: ShapeType.random(), position: spawnPosition)
+    func spawnShape() -> ShapeNode {
+        let shapeNode = addShapeNode(type: nextShapeType, position: spawnPosition)
+        nextShape.removeFromParentNode()
+        previewNextShape()
         return shapeNode
+    }
+    
+    private func previewNextShape() {
+        nextShapeType = ShapeType.random()
+        nextShape = ShapeNode(type: nextShapeType, scaleFactor: 0.4)
+        nextShape.position = previewPosition
+        rootNode.addChildNode(nextShape)
     }
     
     // separate blocks to allow easier removing and dropping of rows

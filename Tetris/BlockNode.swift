@@ -25,18 +25,20 @@ class BlockNode: SCNNode {
         case bottom
     }
 
+    var scaleFactor: CGFloat = 1
     var leftBumper: SCNNode!
     var rightBumper: SCNNode!
     var topBumper: SCNNode!
     var bottomBumper: SCNNode!
     
-    init(color: UIColor) {
+    init(color: UIColor, scaleFactor: CGFloat = 1) {
         super.init()
         name = "Block Node"
-        geometry = SCNBox(width: Constants.blockSize,
-                          height: Constants.blockSize,
-                          length: Constants.blockThickness,
-                          chamferRadius: 0.1 * Constants.blockSize)
+        self.scaleFactor = scaleFactor
+        geometry = SCNBox(width: Constants.blockSize * scaleFactor,
+                          height: Constants.blockSize * scaleFactor,
+                          length: Constants.blockThickness * scaleFactor,
+                          chamferRadius: 0.1 * Constants.blockSize * scaleFactor)
         geometry?.firstMaterial?.diffuse.contents = color
         physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         addBumpers()
@@ -57,15 +59,16 @@ class BlockNode: SCNNode {
         let bumper = SCNSphere(radius: 0.1)
         bumper.firstMaterial?.diffuse.contents = UIColor.clear
         let bumperNode = SCNNode(geometry: bumper)
+        let distance = BlockConstants.bumperDistanceFactor * Constants.blockSpacing * scaleFactor
         switch side {
         case .left:
-            bumperNode.position = SCNVector3(-BlockConstants.bumperDistanceFactor * Constants.blockSpacing, 0, 0)
+            bumperNode.position = SCNVector3(-distance,         0, 0)
         case .right:
-            bumperNode.position = SCNVector3(BlockConstants.bumperDistanceFactor * Constants.blockSpacing, 0, 0)
+            bumperNode.position = SCNVector3( distance,         0, 0)
         case .top:
-            bumperNode.position = SCNVector3(0, BlockConstants.bumperDistanceFactor * Constants.blockSpacing, 0)
+            bumperNode.position = SCNVector3(        0,  distance, 0)
         case .bottom:
-            bumperNode.position = SCNVector3(0, -BlockConstants.bumperDistanceFactor * Constants.blockSpacing, 0)
+            bumperNode.position = SCNVector3(        0, -distance, 0)
         }
         bumperNode.physicsBody = SCNPhysicsBody(type: .kinematic, shape: nil)
         bumperNode.name = "Bumper"

@@ -32,13 +32,15 @@ enum ShapeType: Int {
 class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make a tetris shape
     
     var type = ShapeType.L
+    var scaleFactor: CGFloat = 1
     
     var rotationDegrees: Int {
         return Int(round(eulerAngles.z * 180 / .pi))
     }
     
-    init(type: ShapeType) {
+    init(type: ShapeType, scaleFactor: CGFloat = 1) {
         self.type = type
+        self.scaleFactor = scaleFactor
         super.init()
         name = "Shape Node"
         setup()
@@ -50,47 +52,48 @@ class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make 
     }
     
     func setup() {
+        let size = Constants.blockSpacing * scaleFactor
         switch type {
         case .Line:
-            addBlockNode(position: SCNVector3( -Constants.blockSpacing,                      0, 0), color: .cyan)
-            addBlockNode(position: SCNVector3(                       0,                      0, 0), color: .cyan)
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing,                      0, 0), color: .cyan)
-            addBlockNode(position: SCNVector3(2*Constants.blockSpacing,                      0, 0), color: .cyan)
+            addBlockNode(position: SCNVector3( -size,    0, 0), color: .cyan)
+            addBlockNode(position: SCNVector3(     0,    0, 0), color: .cyan)
+            addBlockNode(position: SCNVector3(  size,    0, 0), color: .cyan)
+            addBlockNode(position: SCNVector3(2*size,    0, 0), color: .cyan)
         case .J:
-            addBlockNode(position: SCNVector3( -Constants.blockSpacing,                      0, 0), color: .blue)
-            addBlockNode(position: SCNVector3(                       0,                      0, 0), color: .blue)
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing,                      0, 0), color: .blue)
-            addBlockNode(position: SCNVector3( -Constants.blockSpacing, Constants.blockSpacing, 0), color: .blue)
+            addBlockNode(position: SCNVector3( -size,    0, 0), color: .blue)
+            addBlockNode(position: SCNVector3(     0,    0, 0), color: .blue)
+            addBlockNode(position: SCNVector3(  size,    0, 0), color: .blue)
+            addBlockNode(position: SCNVector3( -size, size, 0), color: .blue)
         case .L:
-            addBlockNode(position: SCNVector3( -Constants.blockSpacing,                      0, 0), color: .orange)
-            addBlockNode(position: SCNVector3(                       0,                      0, 0), color: .orange)
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing,                      0, 0), color: .orange)
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing, Constants.blockSpacing, 0), color: .orange)
+            addBlockNode(position: SCNVector3( -size,    0, 0), color: .orange)
+            addBlockNode(position: SCNVector3(     0,    0, 0), color: .orange)
+            addBlockNode(position: SCNVector3(  size,    0, 0), color: .orange)
+            addBlockNode(position: SCNVector3(  size, size, 0), color: .orange)
         case .Cube:
-            addBlockNode(position: SCNVector3(                       0,                      0, 0), color: .yellow)
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing,                      0, 0), color: .yellow)
-            addBlockNode(position: SCNVector3(                       0, Constants.blockSpacing, 0), color: .yellow)
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing, Constants.blockSpacing, 0), color: .yellow)
+            addBlockNode(position: SCNVector3(     0,    0, 0), color: .yellow)
+            addBlockNode(position: SCNVector3(  size,    0, 0), color: .yellow)
+            addBlockNode(position: SCNVector3(     0, size, 0), color: .yellow)
+            addBlockNode(position: SCNVector3(  size, size, 0), color: .yellow)
         case .S:
-            addBlockNode(position: SCNVector3( -Constants.blockSpacing,                      0, 0), color: .green)
-            addBlockNode(position: SCNVector3(                       0,                      0, 0), color: .green)
-            addBlockNode(position: SCNVector3(                       0, Constants.blockSpacing, 0), color: .green)
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing, Constants.blockSpacing, 0), color: .green)
+            addBlockNode(position: SCNVector3( -size,    0, 0), color: .green)
+            addBlockNode(position: SCNVector3(     0,    0, 0), color: .green)
+            addBlockNode(position: SCNVector3(     0, size, 0), color: .green)
+            addBlockNode(position: SCNVector3(  size, size, 0), color: .green)
         case .T:
-            addBlockNode(position: SCNVector3( -Constants.blockSpacing,                      0, 0), color: .purple)
-            addBlockNode(position: SCNVector3(                       0,                      0, 0), color: .purple)
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing,                      0, 0), color: .purple)
-            addBlockNode(position: SCNVector3(                       0, Constants.blockSpacing, 0), color: .purple)
+            addBlockNode(position: SCNVector3( -size,    0, 0), color: .purple)
+            addBlockNode(position: SCNVector3(     0,    0, 0), color: .purple)
+            addBlockNode(position: SCNVector3(  size,    0, 0), color: .purple)
+            addBlockNode(position: SCNVector3(     0, size, 0), color: .purple)
         case .Z:
-            addBlockNode(position: SCNVector3(                       0,                      0, 0), color: .red)
-            addBlockNode(position: SCNVector3(  Constants.blockSpacing,                      0, 0), color: .red)
-            addBlockNode(position: SCNVector3( -Constants.blockSpacing, Constants.blockSpacing, 0), color: .red)
-            addBlockNode(position: SCNVector3(                       0, Constants.blockSpacing, 0), color: .red)
+            addBlockNode(position: SCNVector3(     0,    0, 0), color: .red)
+            addBlockNode(position: SCNVector3(  size,    0, 0), color: .red)
+            addBlockNode(position: SCNVector3( -size, size, 0), color: .red)
+            addBlockNode(position: SCNVector3(     0, size, 0), color: .red)
         }
     }
     
     private func addBlockNode(position: SCNVector3, color: UIColor) {
-        let blockNode = BlockNode(color: color)
+        let blockNode = BlockNode(color: color, scaleFactor: scaleFactor)
         blockNode.position = position
         addChildNode(blockNode)
     }

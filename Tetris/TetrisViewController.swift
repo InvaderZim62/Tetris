@@ -104,7 +104,7 @@ class TetrisViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         boardScene.setup()
-        setupView()
+        setupView()  // scnView.scene = boardScene
         setupCamera()
         setupLight()
         setupHud()
@@ -120,11 +120,11 @@ class TetrisViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        spawnRandomShape()
+        spawnShape()
     }
 
-    private func spawnRandomShape() {
-        fallingShape = boardScene.spawnRandomShape()
+    private func spawnShape() {
+        fallingShape = boardScene.spawnShape()
         targetPositionX = fallingShape.position.x  // units: scene coords
         panStartLocation = fallingShape.position.x
         panGesture.isEnabled = true
@@ -143,11 +143,10 @@ class TetrisViewController: UIViewController {
             frameTime = savedFrameTime
             boardScene.separateBlocksFrom(shapeNode: fallingShape)
             hud.score += 100 * boardScene.removeFullRows()
-            print(fallingShape.position.y)
             if fallingShape.position.y >= (Float(Constants.blocksPerSide) / 2 - 2.5) * Float(Constants.blockSpacing) {
                 hud.isGameOver = true
             } else {
-                spawnRandomShape()
+                spawnShape()
             }
         }
     }
@@ -213,7 +212,7 @@ class TetrisViewController: UIViewController {
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
         nudge = 0.0
         var isBlocked = isShapeBlockedFromRotation()
-        if isBlocked.left && isBlocked.right { print("blocked both"); return }  // can't rotate
+        if isBlocked.left && isBlocked.right { return }  // can't rotate
         let originalPositionX = fallingShape.position.x
         while isBlocked.left {
             nudge += Float(Constants.blockSpacing)

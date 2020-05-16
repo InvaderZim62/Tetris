@@ -26,7 +26,7 @@ class Hud: SKScene {
     let gameOverLabel = SKLabelNode(fontNamed: "Menlo-Bold")
 
     func setup() {
-        scoreLabel.position = CGPoint(x: 0.2 * frame.width, y: 0.92 * frame.height)
+        scoreLabel.position = CGPoint(x: 0.2 * frame.width, y: 0.925 * frame.height)
         scoreLabel.fontSize = 24
         addChild(scoreLabel)
         score = 0
