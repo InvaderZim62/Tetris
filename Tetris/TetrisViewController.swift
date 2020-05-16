@@ -69,8 +69,9 @@ struct Constants {
     static let respawnDelay = 0.3        // seconds
     static let softDropTimeFrame = 0.05  // seconds
     static let hardDropTimeFrame = 0.005 // seconds
-    static let hardDropPanThreshold: CGFloat = 30.0  // y-points/pan frame to start hard drop
-    static let panThreshold: CGFloat = 2.0  // points/pan frame to start movement
+    static let hardDropPanThreshold: CGFloat = 20.0  // y-points/pan frame to start hard drop
+    static let horizontalPanSpeedThreshold: CGFloat = 8.0  // points/pan frame to start horizontal movement
+    static let verticalPanSpeedThreshold: CGFloat = 1.0  // points/pan frame to start vertical movement
 }
 
 class TetrisViewController: UIViewController {
@@ -267,9 +268,10 @@ class TetrisViewController: UIViewController {
                 }
                 spawnTime = 0  // force immediate start of hard drop in renderer
                 frameTime = Constants.hardDropTimeFrame
-            } else if abs(translation.x - self.pastTranslationX) > Constants.panThreshold {
-//            } else if abs(translation.x - self.pastTranslationX) > abs(translation.y - pastTranslationY) {
+            } else if abs(translation.x - self.pastTranslationX) > Constants.horizontalPanSpeedThreshold {
                 // pan across or slowly down, move shape slowly (actual move is in renderer)
+                isSoftDrop = false
+                frameTime = levelFrameTime
                 let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
                                                       y: self.shapeScreenStartLocation.y + Float(translation.y),
                                                       z: self.shapeScreenStartLocation.z)
@@ -280,7 +282,7 @@ class TetrisViewController: UIViewController {
                     self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)
                     self.pastTranslationX = translation.x
                 }
-            } else if translation.y - pastTranslationY > Constants.panThreshold {
+            } else if translation.y - pastTranslationY > Constants.verticalPanSpeedThreshold {
                 if !isSoftDrop {
                     // pan down slowly, soft drop
                     isSoftDrop = true
