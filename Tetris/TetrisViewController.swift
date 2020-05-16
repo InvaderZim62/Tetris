@@ -68,7 +68,8 @@ struct Constants {
     static let blocksPerSide = 22       // frame dimension
     static let respawnDelay = 0.3       // seconds
     static let hardDropTimeFrame = 0.01 // seconds
-    static let hardDropPanThreshold: CGFloat = 30.0  // y-points above which hard drop starts
+    static let hardDropPanThreshold: CGFloat = 30.0  // y-points/pan frame to start hard drop
+    static let panThreshold: CGFloat = 1.0  // points/pan frame to start movement
 }
 
 class TetrisViewController: UIViewController {
@@ -82,6 +83,7 @@ class TetrisViewController: UIViewController {
     var panGesture = UIPanGestureRecognizer()
     var targetPositionX: Float = 0.0
     var targetPositionY: Float = 0.0
+    var pastTranslationX: CGFloat = 0.0
     var pastTranslationY: CGFloat = 0.0
     var fallingShape: ShapeNode!
     var isShapeFalling = false
@@ -259,39 +261,39 @@ class TetrisViewController: UIViewController {
         guard !isHardDrop else { return }  // don't assess panning, during hard drop
         if recognizer.state == .began {
             shapeScreenStartLocation = scnView.projectPoint(fallingShape.position)
+            pastTranslationX = 0.0
             pastTranslationY = 0.0
-        } else if recognizer.state == .changed {
+        } else if recognizer.state == .changed {  // don't want to run when state = .ended (fallingShape reached bottom)
             targetPositionY = fallingShape.position.y
             // Note: While the pan continues, translation continuously provides the screen position relative to the starting point (in points).
             let translation = recognizer.translation(in: scnView)  // delta screen coordinates
-            if abs(translation.x) > abs(translation.y) {
+            if translation.y - pastTranslationY > Constants.hardDropPanThreshold {
+                // pan down fast, hard drop
+                isHardDrop = true
+                savedFrameTime = frameTime
+                spawnTime = 0  // force immediate start of dropping in renderer
+                frameTime = Constants.hardDropTimeFrame
+                pastTranslationY = translation.y
+            } else {
                 // pan across, move shape laterally (actual move is in renderer)
                 DispatchQueue.main.async {
                     let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
                                                           y: self.shapeScreenStartLocation.y + Float(translation.y),
                                                           z: self.shapeScreenStartLocation.z)
                     let targetScenePosition = self.scnView.unprojectPoint(targetScreenPosition)
-                    self.targetPositionX = targetScenePosition.x  // scene coordinates
-                    self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
-                }
-            } else if translation.y - pastTranslationY > Constants.hardDropPanThreshold {
-                // pan down fast, hard drop
-                isHardDrop = true
-                savedFrameTime = frameTime
-                spawnTime = 0  // force immediate start of dropping in renderer
-                frameTime = Constants.hardDropTimeFrame
-            } else {
-                // pan down slow, drop shape slowly
-                DispatchQueue.main.async {
-                    let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
-                                                          y: self.shapeScreenStartLocation.y + Float(translation.y),
-                                                          z: self.shapeScreenStartLocation.z)
-                    let targetScenePosition = self.scnView.unprojectPoint(targetScreenPosition)
-                    self.targetPositionY = targetScenePosition.y  // scene coordinates
-                    self.targetPositionY = (floor(self.targetPositionY / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)  // discretize
+                    if abs(translation.x - self.pastTranslationX) > Constants.panThreshold {
+                        self.targetPositionX = targetScenePosition.x  // scene coordinates
+                        // discretize by blockSpacing
+                        self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)
+                    }
+                    if abs(translation.y - self.pastTranslationY) > Constants.panThreshold {
+                        self.targetPositionY = targetScenePosition.y  // scene coordinates
+                        self.targetPositionY = (floor(self.targetPositionY / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)
+                    }
+                    self.pastTranslationX = translation.x
+                    self.pastTranslationY = translation.y
                 }
             }
-            pastTranslationY = translation.y
         }
     }
     
