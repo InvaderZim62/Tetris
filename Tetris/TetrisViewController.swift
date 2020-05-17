@@ -274,11 +274,6 @@ class TetrisViewController: UIViewController {
     
     // move shape left/right when panning across, or down when panning down
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
-        if isSoftDrop {
-            print("s", terminator: "")
-        } else {
-            print(".", terminator: "")
-        }
         guard !isHardDrop else { return }  // don't assess panning, during hard drop
         if recognizer.state == .began {
             shapeScreenStartLocation = scnView.projectPoint(fallingShape.position)
@@ -296,7 +291,6 @@ class TetrisViewController: UIViewController {
                 frameTime = Constants.hardDropTimeFrame
             } else if abs(translation.x - self.pastTranslationX) > Constants.horizontalPanSpeedThreshold {  // 8.0
                 // pan across, move shape across (actual move is in renderer)
-                print("_", terminator: "")
                 isSoftDrop = false
                 frameTime = levelFrameTime
                 let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
@@ -313,19 +307,16 @@ class TetrisViewController: UIViewController {
                 // pan down slowly, soft drop
                 if !isSoftDrop {
                     isSoftDrop = true
-                    print("S", terminator: "")
                     spawnTime = 0  // force immediate start of dropping in renderer (don't keep repeating this)
                     frameTime = Constants.softDropTimeFrame
                 }
             } else {
                 // pan decreasing, stop potential soft drop here, since it can take some time for .ended (pan inertia)
-                print("X", terminator: "")
                 isSoftDrop = false
                 frameTime = levelFrameTime
             }
             pastTranslationY = translation.y
         } else if recognizer.state == .ended {
-            print("E", terminator: "")
             isSoftDrop = false
             frameTime = levelFrameTime
         }

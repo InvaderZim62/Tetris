@@ -46,7 +46,7 @@ class BoardScene: SCNScene {
     
     private func previewNextShape() {
         nextShapeType = ShapeType.random()
-        nextShape = ShapeNode(type: nextShapeType, scaleFactor: 0.4)
+        nextShape = ShapeNode(type: nextShapeType, scaleFactor: 0.5)
         nextShape.position = previewPosition
         rootNode.addChildNode(nextShape)
     }
