@@ -176,7 +176,7 @@ class TetrisViewController: UIViewController {
             hud.level = level
             levelRowsCleared -= 10
         }
-        hud.score += rowRemovalPoints[numberOfRowsRemoved] * (level + 1)  // original Nintendo scoring system
+        hud.score += rowRemovalPoints[numberOfRowsRemoved - 1] * (level + 1)  // original Nintendo scoring system
         levelFrameTime = Double(framesPerGridcell[min(level, 29)]) / framesPerSecond
         frameTime = levelFrameTime
         // check if game over, or spawn next shape
