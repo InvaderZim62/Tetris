@@ -83,6 +83,7 @@ class TetrisViewController: UIViewController {
     var hud = Hud()
 
     var panGesture = UIPanGestureRecognizer()
+    var shapeScreenStartLocation: SCNVector3!
     var targetPositionX: Float = 0.0
     var pastTranslationX: CGFloat = 0.0
     var pastTranslationY: CGFloat = 0.0
@@ -95,7 +96,13 @@ class TetrisViewController: UIViewController {
     var spawnTime: TimeInterval = 0
     var frameTime: Double!  // instantaneous from time, affects speed of shapes falling
     var levelFrameTime = 1.0  // frame time when not hard drop or soft drop (reduces as game level increases)
-    var shapeScreenStartLocation: SCNVector3!
+    var level = 0
+    var levelRowsCleared = 0
+    //                rows:  1    2    3     4
+    let rowRemovalPoints = [40, 100, 300, 1200]
+    //                level:  0   1   2   3   4   5   6   7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29+
+    let framesPerGridcell = [48, 43, 38, 33, 28, 23, 18, 13, 8, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
+    let framesPerSecond = 60.0988  // Nintendo NES
 
     override var shouldAutorotate: Bool {
         return true
@@ -126,6 +133,8 @@ class TetrisViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        level = 0
+        levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
         frameTime = levelFrameTime
         spawnShape()
     }
@@ -142,6 +151,11 @@ class TetrisViewController: UIViewController {
         if !isFallingShapeContactingOn(screenSide: .bottom) {
             // move one space down (handlePan handles moving laterally)
             fallingShape.position.y -= Float(Constants.blockSpacing)
+            if isSoftDrop {
+                hud.score += 1
+            } else if isHardDrop {
+                hud.score += 2
+            }
         } else {
             handleShapeReachingBottom()
         }
@@ -155,7 +169,17 @@ class TetrisViewController: UIViewController {
         isShapeFalling = false
         frameTime = levelFrameTime
         boardScene.separateBlocksFrom(shapeNode: fallingShape)  // removes fallingShape from rootNode
-        hud.score += 100 * boardScene.removeFullRows()
+        let numberOfRowsRemoved = boardScene.removeFullRows()
+        levelRowsCleared += numberOfRowsRemoved
+        if levelRowsCleared >= 10 {
+            level += 1
+            hud.level = level
+            levelRowsCleared -= 10
+        }
+        hud.score += rowRemovalPoints[numberOfRowsRemoved] * (level + 1)  // original Nintendo scoring system
+        levelFrameTime = Double(framesPerGridcell[min(level, 29)]) / framesPerSecond
+        frameTime = levelFrameTime
+        // check if game over, or spawn next shape
         if fallingShape.position.y >= (Float(Constants.blocksPerSide) / 2 - 2.5) * Float(Constants.blockSpacing) {
             hud.isGameOver = true
         } else {
@@ -250,6 +274,11 @@ class TetrisViewController: UIViewController {
     
     // move shape left/right when panning across, or down when panning down
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
+        if isSoftDrop {
+            print("s", terminator: "")
+        } else {
+            print(".", terminator: "")
+        }
         guard !isHardDrop else { return }  // don't assess panning, during hard drop
         if recognizer.state == .began {
             shapeScreenStartLocation = scnView.projectPoint(fallingShape.position)
@@ -261,15 +290,13 @@ class TetrisViewController: UIViewController {
             
             if translation.y - pastTranslationY > Constants.hardDropPanThreshold {
                 // pan down fast, hard drop
-                if isSoftDrop {
-                    isSoftDrop = false
-                } else {
-                    isHardDrop = true
-                }
+                isSoftDrop = false
+                isHardDrop = true
                 spawnTime = 0  // force immediate start of hard drop in renderer
                 frameTime = Constants.hardDropTimeFrame
-            } else if abs(translation.x - self.pastTranslationX) > Constants.horizontalPanSpeedThreshold {
-                // pan across or slowly down, move shape slowly (actual move is in renderer)
+            } else if abs(translation.x - self.pastTranslationX) > Constants.horizontalPanSpeedThreshold {  // 8.0
+                // pan across, move shape across (actual move is in renderer)
+                print("_", terminator: "")
                 isSoftDrop = false
                 frameTime = levelFrameTime
                 let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
@@ -282,19 +309,23 @@ class TetrisViewController: UIViewController {
                     self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)
                     self.pastTranslationX = translation.x
                 }
-            } else if translation.y - pastTranslationY > Constants.verticalPanSpeedThreshold {
+            } else if translation.y - pastTranslationY > Constants.verticalPanSpeedThreshold {  // 1.0
+                // pan down slowly, soft drop
                 if !isSoftDrop {
-                    // pan down slowly, soft drop
                     isSoftDrop = true
-                    spawnTime = 0  // force immediate start of dropping in renderer
+                    print("S", terminator: "")
+                    spawnTime = 0  // force immediate start of dropping in renderer (don't keep repeating this)
                     frameTime = Constants.softDropTimeFrame
                 }
             } else {
+                // pan decreasing, stop potential soft drop here, since it can take some time for .ended (pan inertia)
+                print("X", terminator: "")
                 isSoftDrop = false
                 frameTime = levelFrameTime
             }
             pastTranslationY = translation.y
         } else if recognizer.state == .ended {
+            print("E", terminator: "")
             isSoftDrop = false
             frameTime = levelFrameTime
         }

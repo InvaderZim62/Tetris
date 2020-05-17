@@ -5,19 +5,19 @@
 //  Created by Phil Stern on 5/1/20.
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
-//  ShapeTypes            ◻️             ◻️        ◻️◻️       ◻️◻️      ◻️       ◻️◻️
-//    Line: ◻️◻️◻️◻️  J: ◻️◻️◻️  L: ◻️◻️◻️  Cube: ◻️◻️  S: ◻️◻️   T: ◻️◻️◻️  Z:   ◻️◻️
-//    origin:  ^            ^           ^           ^           ^         ^          ^
+//  ShapeTypes              ◻️             ◻️     ◻️◻️       ◻️◻️      ◻️       ◻️◻️
+//         I: ◻️◻️◻️◻️  J: ◻️◻️◻️  L: ◻️◻️◻️  O: ◻️◻️  S: ◻️◻️   T: ◻️◻️◻️  Z:   ◻️◻️
+//    origin:    ^            ^           ^        ^           ^         ^          ^
 //
 
 import UIKit
 import SceneKit
 
 enum ShapeType: Int {
-    case Line
+    case I
     case J
     case L
-    case Cube
+    case O
     case S
     case T
     case Z
@@ -54,7 +54,7 @@ class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make 
     func setup() {
         let size = Constants.blockSpacing * scaleFactor
         switch type {
-        case .Line:
+        case .I:
             addBlockNode(position: SCNVector3( -size,    0, 0), color: .cyan)
             addBlockNode(position: SCNVector3(     0,    0, 0), color: .cyan)
             addBlockNode(position: SCNVector3(  size,    0, 0), color: .cyan)
@@ -69,7 +69,7 @@ class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make 
             addBlockNode(position: SCNVector3(     0,    0, 0), color: .orange)
             addBlockNode(position: SCNVector3(  size,    0, 0), color: .orange)
             addBlockNode(position: SCNVector3(  size, size, 0), color: .orange)
-        case .Cube:
+        case .O:
             addBlockNode(position: SCNVector3(     0,    0, 0), color: .yellow)
             addBlockNode(position: SCNVector3(  size,    0, 0), color: .yellow)
             addBlockNode(position: SCNVector3(     0, size, 0), color: .yellow)
