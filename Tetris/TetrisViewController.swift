@@ -157,7 +157,6 @@ class TetrisViewController: UIViewController {
         if !isFallingShapeContactingOn(screenSide: .bottom) {
             // move one space down (handlePan handles moving laterally)
             fallingShape.position.y -= Float(Constants.blockSpacing)
-            print("position: \(fallingShape.position.x), \(fallingShape.position.y)")
             // add score
             if isSoftDrop {
                 hud.score += 1
@@ -290,9 +289,7 @@ class TetrisViewController: UIViewController {
     // move shape left/right when panning across, or down when panning down
     @objc func handlePan(recognizer: UIPanGestureRecognizer) {
         isPanHandled = true
-        print(".", terminator: "")
         if recognizer.state == .began {
-            print("Pan Began")
             shapeScreenStartLocation = scnView.projectPoint(fallingShape.position)
             motionState = .lateralPan
         } else if recognizer.state == .changed {  // don't want to run when state = .ended (fallingShape reached bottom)
@@ -307,7 +304,6 @@ class TetrisViewController: UIViewController {
             case .lateralPan:
                 if verticalPanSpeed > Constants.hardDropPanThreshold {
                     motionState = .hardDrop
-                    print("\nHard Drop")
                 } else if verticalPanSpeed > lateralPanSpeed + Constants.panSpeedDeadband {
                     motionState = .softDrop
                 }
@@ -318,8 +314,6 @@ class TetrisViewController: UIViewController {
             default:
                 return
             }
-            
-            print(String(format: "position: \(fallingShape.position.x), \(fallingShape.position.y),   lat spd: %.1f, vert spd: %.1f    \(motionState!)", lateralPanSpeed, verticalPanSpeed))
 
             // perform motionState actions
             switch motionState {
@@ -350,7 +344,6 @@ class TetrisViewController: UIViewController {
                 break
             }
         } else if recognizer.state == .ended {
-            print("Pan Ended")
             isSoftDrop = false
             frameTime = levelFrameTime
         }
