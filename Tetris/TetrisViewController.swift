@@ -71,6 +71,7 @@ struct Constants {
     static let cameraDistance: CGFloat = 23 * Constants.blockSpacing
     static let blocksPerBase = 12        // frame dimension
     static let blocksPerSide = 22        // frame dimension
+    static let defaultScore = 1000      // default high score for top 10 list (must beat to get on list)
     static let softDropTimeFrame = 0.05  // seconds
     static let hardDropTimeFrame = 0.005 // seconds
     static let hardDropPanSpeedThreshold: CGFloat = 20.0  // y-speed to start hard drop
@@ -91,6 +92,8 @@ class TetrisViewController: UIViewController {
     let boardScene = BoardScene()
     var hud = Hud()
 
+    var highScores = [Int]()
+    var highScoreInitials = [String]()
     var panGesture = UIPanGestureRecognizer()
     var shapeScreenStartLocation: SCNVector3!
     var targetPositionX: Float = 0.0
@@ -136,6 +139,20 @@ class TetrisViewController: UIViewController {
         // add pan gesture to move shapes laterally
         panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan))
         scnView.addGestureRecognizer(panGesture)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        // try reading high scores from UserDefaults
+        let defaults = UserDefaults.standard
+        if let scores = defaults.array(forKey: "highScores") as? [Int] {
+            highScores = scores
+            highScoreInitials = defaults.stringArray(forKey: "highScoreInitials")!
+        } else {
+            highScores = [Int](repeating: Constants.defaultScore, count: 10)
+            highScoreInitials = [String](repeating: "TET", count: 10)
+        }
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -193,9 +210,29 @@ class TetrisViewController: UIViewController {
         frameTime = levelFrameTime
         // check if game over, or spawn next shape
         if fallingShape.position.y >= (Float(Constants.blocksPerSide) / 2 - 2.5) * Float(Constants.blockSpacing) {
-            hud.isGameOver = true
+            gameOver()
         } else {
             spawnShape()
+        }
+    }
+    
+    private func gameOver() {
+        hud.isGameOver = true
+        if hud.score > highScores.min()! {
+            // sort both arrays by highScore
+            let combined = zip(highScores, highScoreInitials).sorted { $0.0 > $1.0 }  // returns tuple
+            highScores = combined.map { $0.0 }
+            highScoreInitials = combined.map { $0.1 }
+            // replaced last place with new score
+            highScores[highScores.count - 1] = hud.score
+            highScoreInitials[highScores.count - 1] = "<<<"
+            DispatchQueue.main.async {
+                // save high scores to userDefaults
+                let defaults = UserDefaults.standard
+                defaults.set(self.highScores, forKey: "highScores")
+                defaults.set(self.highScoreInitials, forKey: "highScoreInitials")
+                self.performSegue(withIdentifier: "Show High Scores", sender: self)  // prepare(for segue:) not needed
+            }
         }
     }
 
@@ -449,6 +486,16 @@ class TetrisViewController: UIViewController {
             }
         }
         return false
+    }
+    
+    // MARK: - Segue
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if let hsvc = segue.destination as? HighScoresViewController {
+            if segue.identifier == "Show High Scores" {
+                
+            }
+        }
     }
 }
 
