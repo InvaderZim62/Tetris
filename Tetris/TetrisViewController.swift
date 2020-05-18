@@ -487,16 +487,6 @@ class TetrisViewController: UIViewController {
         }
         return false
     }
-    
-    // MARK: - Segue
-    
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let hsvc = segue.destination as? HighScoresViewController {
-            if segue.identifier == "Show High Scores" {
-                
-            }
-        }
-    }
 }
 
 extension TetrisViewController: SCNSceneRendererDelegate {
