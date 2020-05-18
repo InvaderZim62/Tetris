@@ -68,9 +68,7 @@ struct Constants {
     static let blocksPerSide = 22        // frame dimension
     static let softDropTimeFrame = 0.05  // seconds
     static let hardDropTimeFrame = 0.005 // seconds
-    static let hardDropPanThreshold: CGFloat = 20.0  // y-points/pan frame to start hard drop
-    static let horizontalPanSpeedThreshold: CGFloat = 10.0  // points/pan frame to start horizontal movement
-    static let verticalPanSpeedThreshold: CGFloat = 1.0  // points/pan frame to start vertical movement
+    static let hardDropPanSpeedThreshold: CGFloat = 20.0  // y-speed to start hard drop
     static let panSpeedDeadband: CGFloat = 5.0
 }
 
@@ -302,13 +300,15 @@ class TetrisViewController: UIViewController {
             // update motionState
             switch motionState {
             case .lateralPan:
-                if verticalPanSpeed > Constants.hardDropPanThreshold {
+                if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
                     motionState = .hardDrop
                 } else if verticalPanSpeed > lateralPanSpeed + Constants.panSpeedDeadband {
                     motionState = .softDrop
                 }
             case .softDrop:
-                if lateralPanSpeed > verticalPanSpeed + Constants.panSpeedDeadband {//|| verticalPanSpeed < 2 {
+                if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
+                    motionState = .hardDrop
+                } else if lateralPanSpeed > verticalPanSpeed + Constants.panSpeedDeadband {
                     motionState = .lateralPan
                 }
             default:
