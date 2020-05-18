@@ -345,7 +345,7 @@ class TetrisViewController: UIViewController {
             }
         } else if recognizer.state == .ended {
             isSoftDrop = false
-            frameTime = levelFrameTime
+            if !isHardDrop { frameTime = levelFrameTime }
         }
     }
     
