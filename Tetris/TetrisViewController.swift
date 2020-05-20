@@ -82,6 +82,7 @@ struct Constants {
 class TetrisViewController: UIViewController {
     
     enum MotionState {
+        case idle
         case lateralPan
         case softDrop
         case hardDrop
@@ -230,7 +231,7 @@ class TetrisViewController: UIViewController {
             // replaced last place with new score
             highScores[highScores.count - 1] = hud.score
             highScoreInitials[highScores.count - 1] = "<<<"
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
                 // save high scores to userDefaults, then segue to HighScoresViewController
                 let defaults = UserDefaults.standard
                 defaults.set(self.highScores, forKey: "highScores")
@@ -338,7 +339,7 @@ class TetrisViewController: UIViewController {
         isPanHandled = true
         if recognizer.state == .began {
             shapeScreenStartLocation = scnView.projectPoint(fallingShape.position)
-            motionState = .lateralPan
+            motionState = .idle
         } else if recognizer.state == .changed {
             // Note: While the pan continues, translation continuously provides the screen position relative to the starting point (in points).
             let translation = recognizer.translation(in: scnView)  // delta screen coordinates
@@ -348,8 +349,16 @@ class TetrisViewController: UIViewController {
             
             let pastMotionState = motionState
             
-            // update motionState
+            // update state
             switch motionState {
+            case .idle:
+                if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
+                    motionState = .hardDrop
+                } else if lateralPanSpeed > verticalPanSpeed {
+                    motionState = .lateralPan
+                } else if verticalPanSpeed > lateralPanSpeed + Constants.panSpeedSoftDropDeadband {
+                    motionState = .softDrop
+                }
             case .lateralPan:
                 if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
                     motionState = .hardDrop
@@ -366,7 +375,7 @@ class TetrisViewController: UIViewController {
                 return
             }
 
-            // perform motionState actions
+            // perform state actions
             switch motionState {
             case .hardDrop:
                 spawnTime = 0  // force immediate start of hard drop in renderer
