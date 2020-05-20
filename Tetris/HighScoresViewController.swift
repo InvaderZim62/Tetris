@@ -36,10 +36,6 @@ class HighScoresViewController: UIViewController, UITextFieldDelegate {
             highScores = [Int](repeating: Constants.defaultScore, count: 10)
             highScoreInitials = [String](repeating: "TET", count: 10)
         }
-    }
-    
-    override func viewDidAppear(_ animated: Bool) {
-        super.viewDidAppear(animated)
         updateAllLabels()
     }
     

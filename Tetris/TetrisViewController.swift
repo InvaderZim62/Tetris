@@ -163,6 +163,7 @@ class TetrisViewController: UIViewController {
         super.viewDidAppear(animated)
         print("viewDidAppear")  // pws: crash debug
         level = 0
+        levelRowsCleared = 0
         levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
         frameTime = levelFrameTime
         spawnShape()
@@ -244,6 +245,7 @@ class TetrisViewController: UIViewController {
     private func startNewGame() {  // called by clicking hud button
         hud.reset()
         boardScene.reset()
+        level = 0
         levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
         frameTime = levelFrameTime
         spawnShape()
