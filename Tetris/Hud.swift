@@ -9,7 +9,9 @@
 import Foundation
 import SpriteKit
 
-class Hud: SKScene {
+class Hud: SKScene, ButtonDelegate {
+    
+    var newGameButton: Button!
 
     var level = 0 {
         didSet {
@@ -23,7 +25,16 @@ class Hud: SKScene {
     }
     var isGameOver = false {
         didSet {
-            if isGameOver { gameOverLabel.text = "Game Over" }
+            if isGameOver {
+                gameOverLabel.text = "Game Over"
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    self.newGameButton.isUserInteractionEnabled = true
+                    self.gameOverLabel.text = "New Game"
+                }
+            } else {
+                gameOverLabel.text = ""
+                newGameButton.isUserInteractionEnabled = false
+            }
         }
     }
 
@@ -32,8 +43,11 @@ class Hud: SKScene {
     let scoreTextLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let scoreLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let gameOverLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+    var buttonHandler: (() -> Void)?
 
-    func setup() {
+    func setup(buttonHandler: @escaping () -> Void) {
+        self.buttonHandler = buttonHandler
+        
         levelTextLabel.text = "LV"
         levelTextLabel.position = CGPoint(x: 0.16 * frame.width, y: 0.945 * frame.height)
         levelTextLabel.fontSize = 20
@@ -57,5 +71,25 @@ class Hud: SKScene {
         gameOverLabel.position = CGPoint(x: frame.midX, y: 0.5 * frame.height)
         gameOverLabel.fontSize = 30
         addChild(gameOverLabel)
+        
+        // line up button with gameOverLabel (button doesn't have its own text)
+        newGameButton = Button(texture: nil, color: .clear, size: CGSize(width: 100, height: 30))
+        newGameButton.position = CGPoint(x: frame.midX, y: 0.5 * frame.height)
+        newGameButton.delegate = self
+        addChild(newGameButton)
+        
+        isGameOver = false  // must be after initialization of newGameButton
+    }
+    
+    func reset() {
+        level = 0
+        score = 0
+        isGameOver = false
+    }
+    
+    // MARK: - ButtonDelegate
+    
+    func buttonClicked(sender: Button) {
+        buttonHandler?()
     }
 }

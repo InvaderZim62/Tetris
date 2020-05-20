@@ -75,7 +75,8 @@ struct Constants {
     static let softDropTimeFrame = 0.05  // seconds
     static let hardDropTimeFrame = 0.005 // seconds
     static let hardDropPanSpeedThreshold: CGFloat = 20.0  // y-speed to start hard drop
-    static let panSpeedDeadband: CGFloat = 5.0
+    static let panSpeedSoftDropDeadband: CGFloat = 5.0
+    static let panSpeedLateralDeadband: CGFloat = 8.0
 }
 
 class TetrisViewController: UIViewController {
@@ -126,6 +127,7 @@ class TetrisViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("viewDidLoad")  // pws: crash debug
         boardScene.setup()
         setupView()  // scnView.scene = boardScene
         setupCamera()
@@ -143,6 +145,7 @@ class TetrisViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        print("viewWillAppear")  // pws: crash debug
 
         // try reading high scores from UserDefaults
         let defaults = UserDefaults.standard
@@ -157,6 +160,7 @@ class TetrisViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        print("viewDidAppear")  // pws: crash debug
         level = 0
         levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
         frameTime = levelFrameTime
@@ -226,14 +230,22 @@ class TetrisViewController: UIViewController {
             // replaced last place with new score
             highScores[highScores.count - 1] = hud.score
             highScoreInitials[highScores.count - 1] = "<<<"
-            DispatchQueue.main.async {
-                // save high scores to userDefaults
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                // save high scores to userDefaults, then segue to HighScoresViewController
                 let defaults = UserDefaults.standard
                 defaults.set(self.highScores, forKey: "highScores")
                 defaults.set(self.highScoreInitials, forKey: "highScoreInitials")
                 self.performSegue(withIdentifier: "Show High Scores", sender: self)  // prepare(for segue:) not needed
             }
         }
+    }
+    
+    private func startNewGame() {  // called by clicking hud button
+        hud.reset()
+        boardScene.reset()
+        levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
+        frameTime = levelFrameTime
+        spawnShape()
     }
 
     func moveShapeAcross() {
@@ -341,13 +353,13 @@ class TetrisViewController: UIViewController {
             case .lateralPan:
                 if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
                     motionState = .hardDrop
-                } else if verticalPanSpeed > lateralPanSpeed + Constants.panSpeedDeadband {
+                } else if verticalPanSpeed > lateralPanSpeed + Constants.panSpeedSoftDropDeadband {
                     motionState = .softDrop
                 }
             case .softDrop:
                 if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
                     motionState = .hardDrop
-                } else if lateralPanSpeed > verticalPanSpeed + Constants.panSpeedDeadband {
+                } else if lateralPanSpeed > verticalPanSpeed + Constants.panSpeedLateralDeadband {
                     motionState = .lateralPan
                 }
             default:
@@ -382,7 +394,7 @@ class TetrisViewController: UIViewController {
             if motionState != .hardDrop { frameTime = levelFrameTime }
         }
     }
-    
+
     // MARK: - Setup
     
     private func setupView() {
@@ -418,7 +430,7 @@ class TetrisViewController: UIViewController {
     
     func setupHud() {
         hud = Hud(size: view.bounds.size)
-        hud.setup()
+        hud.setup(buttonHandler: self.startNewGame)
         scnView.overlaySKScene = hud
     }
 
@@ -476,7 +488,7 @@ class TetrisViewController: UIViewController {
                     }
                 }
                 boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevalute possible contacts (may not be needed?)
-                let contactedNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
+                let contactedNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)  // occasional crash, here
                 for contactedNode in contactedNodes {
                     // disregard bumpers that are contacting other blocks within its own shape
                     if contactedNode.nodeA.parent != fallingShape && contactedNode.nodeB.parent != fallingShape {
