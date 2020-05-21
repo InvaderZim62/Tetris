@@ -96,6 +96,7 @@ class TetrisViewController: UIViewController {
 
     var highScores = [Int]()
     var highScoreInitials = [String]()
+    var tapGesture = UITapGestureRecognizer()
     var panGesture = UIPanGestureRecognizer()
     var shapeScreenStartLocation: SCNVector3!
     var targetPositionX: Float = 0.0
@@ -136,7 +137,7 @@ class TetrisViewController: UIViewController {
         setupHud()
         
         // add tap gesture to rotate shapes
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
+        tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         scnView.addGestureRecognizer(tapGesture)
         
         // add pan gesture to move shapes laterally
@@ -172,6 +173,7 @@ class TetrisViewController: UIViewController {
     private func spawnShape() {
         fallingShape = boardScene.spawnShape()
         targetPositionX = fallingShape.position.x  // scene coordinates
+        tapGesture.isEnabled = true
         panGesture.isEnabled = true
         isShapeFalling = true
     }
@@ -224,6 +226,7 @@ class TetrisViewController: UIViewController {
     
     private func gameOver() {
         hud.isGameOver = true
+        tapGesture.isEnabled = false  // disable, so tapping on "New Game" doesn't cause next falling piece to rotate (re-enable in spawnShape)
         if hud.score > highScores.min()! {
             // sort both arrays by highScore
             let combined = zip(highScores, highScoreInitials).sorted { $0.0 > $1.0 }  // returns tuple
