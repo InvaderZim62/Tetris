@@ -104,8 +104,7 @@ class TetrisViewController: UIViewController {
     var fallingShape: ShapeNode!
     var isShapeFalling = false
     var motionState: MotionState!
-    var isShapeRotating = false
-    var nudge: Float = 0.0
+    var isRotationRequested = false
     var spawnTime: TimeInterval = 0
     var frameTime: Double!  // instantaneous from time, affects speed of shapes falling
     var levelFrameTime = 1.0  // frame time when not hard drop or soft drop (reduces as game level increases)
@@ -271,17 +270,46 @@ class TetrisViewController: UIViewController {
         }
     }
 
-    func rotateShape() {
-        isShapeRotating = false
-        fallingShape.position.x += nudge  // for some reason, nudge has to be applied again, here (also in handleTap)
-        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)
+    // rotate fallingShape 90 deg CCW, if not blocked (move left or right, if necessary to allow rotation)
+    func rotateShapeIfNotBlocked() {
+        isRotationRequested = false
+        
+        var nudge: Float = 0.0
+        var isBlocked = isShapeBlockedFromRotation()
+        if isBlocked.left && isBlocked.right { return }  // blocked on both sides (return without rotating)
+        let originalPositionX = fallingShape.position.x
+        
+        // if blocked to the left, move one position at a time to the right, until free to rotate, or until blocked to the right
+        while isBlocked.left {
+            nudge += Float(Constants.blockSpacing)
+            fallingShape.position.x += nudge  // temporarily move right
+            isBlocked = isShapeBlockedFromRotation()
+            if isBlocked.right {
+                fallingShape.position.x = originalPositionX
+                return  // unable to move and rotate freely (return without rotating)
+            }
+        }
+        
+        // if blocked to the right, move one position at a time to the left, until free to rotate, or until blocked to the left
+        while isBlocked.right {
+            nudge -= Float(Constants.blockSpacing)
+            fallingShape.position.x += nudge  // temporarily move left
+            isBlocked = isShapeBlockedFromRotation()
+            if isBlocked.left {
+                fallingShape.position.x = originalPositionX
+                return  // unable to move and rotate freely (return without rotating)
+            }
+        }
+        fallingShape.position.x += nudge
+        fallingShape.transform = SCNMatrix4Rotate(fallingShape.transform, .pi/2, 0, 0, 1)  // rotate 90 deg CCW
     }
     
+    // determine if any of the blocks in fallingShape will overlap an external block, if fallingShape were to be rotated 90 deg CCW
     private func isShapeBlockedFromRotation() -> (left: Bool, right: Bool) {
         var isBlockedLeft = false
         var isBlockedRight = false
 
-        let finalAngle = fallingShape.eulerAngles.z + Float.pi / 2
+        let finalAngle = fallingShape.eulerAngles.z + Float.pi / 2  // 90 deg CCW
         let rotateAroundZ = simd_quatf(angle: finalAngle, axis: SIMD3(0, 0, 1))
         let transform = simd_float4x4(rotateAroundZ)
         
@@ -314,29 +342,7 @@ class TetrisViewController: UIViewController {
     
     // rotate falling shape 90 deg CCW when tapped (unless rotation will cause contact with edge, or another block)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        nudge = 0.0
-        var isBlocked = isShapeBlockedFromRotation()
-        if isBlocked.left && isBlocked.right { return }  // can't rotate
-        let originalPositionX = fallingShape.position.x
-        while isBlocked.left {
-            nudge += Float(Constants.blockSpacing)
-            fallingShape.position.x += Float(Constants.blockSpacing)
-            isBlocked = isShapeBlockedFromRotation()
-            if isBlocked.right {
-                fallingShape.position.x = originalPositionX
-                return  // can't rotate
-            }
-        }
-        while isBlocked.right {
-            nudge -= Float(Constants.blockSpacing)
-            fallingShape.position.x -= Float(Constants.blockSpacing)
-            isBlocked = isShapeBlockedFromRotation()
-            if isBlocked.left {
-                fallingShape.position.x = originalPositionX
-                return  // can't rotate
-            }
-        }
-        isShapeRotating = true
+        isRotationRequested = true
     }
     
     // move shape left/right when panning across, or down when panning down
@@ -517,8 +523,10 @@ class TetrisViewController: UIViewController {
 
 extension TetrisViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
-        if isShapeRotating {
-            rotateShape()
+        if isRotationRequested {
+            rotateShapeIfNotBlocked()
+        } else {
+            moveShapeAcross()
         }
         if isShapeFalling {
             if time > spawnTime {
@@ -526,6 +534,5 @@ extension TetrisViewController: SCNSceneRendererDelegate {
                 moveShapeDown()
             }
         }
-        moveShapeAcross()
     }
 }
