@@ -308,6 +308,8 @@ class TetrisViewController: UIViewController {
     private func isShapeBlockedFromRotation() -> (left: Bool, right: Bool) {
         var isBlockedLeft = false
         var isBlockedRight = false
+        var numberOfContactsBelow = 0
+        var numberOfBlocksWithContacts = 0
 
         let finalAngle = fallingShape.eulerAngles.z + Float.pi / 2  // 90 deg CCW
         let rotateAroundZ = simd_quatf(angle: finalAngle, axis: SIMD3(0, 0, 1))
@@ -326,14 +328,25 @@ class TetrisViewController: UIViewController {
             
             if hitResults.count > 1 {  // all blocks are in contact with at least the background
                 if hitResults[0].node.parent != fallingShape {  // ignore contacts with fallingShape
-                    let contactDistance = absoluteRotatedPosition.x - fallingShape.position.x  // scene coordinates
-                    if contactDistance > Float(Constants.blockSpacing / 2) {
+                    numberOfBlocksWithContacts += 1
+                    let contactDistanceX = absoluteRotatedPosition.x - fallingShape.position.x  // scene coordinates
+                    let contactDistanceY = absoluteRotatedPosition.y - fallingShape.position.y
+                    let contactTolerance = Float(Constants.blockSpacing) / 2
+                    
+                    if contactDistanceY < -contactTolerance {
+                        numberOfContactsBelow += 1
+                    }
+                    if contactDistanceX > contactTolerance {
                         isBlockedRight = true
-                    } else if contactDistance < -Float(Constants.blockSpacing / 2) {
+                    } else if contactDistanceX < -contactTolerance {
                         isBlockedLeft = true
                     }
                 }
             }
+        }
+        if numberOfBlocksWithContacts > 0 && numberOfBlocksWithContacts == numberOfContactsBelow {  // all contacts are below
+            isBlockedLeft = true  // set both true, to prevent rotation
+            isBlockedRight = true
         }
         return (isBlockedLeft, isBlockedRight)
     }
@@ -525,10 +538,12 @@ extension TetrisViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         if isRotationRequested {
             rotateShapeIfNotBlocked()
+            // pws: try setting targetPositionX = fallingShape.position.x and disabling panGesture here,
+            // if shape keeps moving through walls (re-enable at end of rotateShapeIfNotBlocked)
         } else {
             moveShapeAcross()
         }
-        if isShapeFalling {
+        if isShapeFalling {  // pws: maybe move this into if-else block, above
             if time > spawnTime {
                 spawnTime = time + frameTime
                 moveShapeDown()
