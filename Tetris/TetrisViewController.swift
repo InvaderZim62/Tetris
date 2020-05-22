@@ -128,7 +128,6 @@ class TetrisViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print("viewDidLoad")  // pws: crash debug
         boardScene.setup()
         setupView()  // scnView.scene = boardScene
         setupCamera()
@@ -146,7 +145,6 @@ class TetrisViewController: UIViewController {
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        print("viewWillAppear")  // pws: crash debug
 
         // try reading high scores from UserDefaults
         let defaults = UserDefaults.standard
@@ -161,7 +159,6 @@ class TetrisViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        print("viewDidAppear")  // pws: crash debug
         level = 0
         levelRowsCleared = 0
         levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
@@ -344,7 +341,8 @@ class TetrisViewController: UIViewController {
                 }
             }
         }
-        if numberOfBlocksWithContacts > 0 && numberOfBlocksWithContacts == numberOfContactsBelow {  // all contacts are below
+        // don't allow rotation, if all contacts are below the center of fallingShape
+        if numberOfBlocksWithContacts > 0 && numberOfBlocksWithContacts == numberOfContactsBelow {
             isBlockedLeft = true  // set both true, to prevent rotation
             isBlockedRight = true
         }
@@ -353,9 +351,9 @@ class TetrisViewController: UIViewController {
     
     // MARK: - Gesture Recognizers
     
-    // rotate falling shape 90 deg CCW when tapped (unless rotation will cause contact with edge, or another block)
+    // rotate falling shape 90 deg CCW when tapped (unless rotation will cause contact with edges, or other blocks)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        isRotationRequested = true
+        isRotationRequested = true  // rotation occurs at next renderer frame
     }
     
     // move shape left/right when panning across, or down when panning down
@@ -368,38 +366,11 @@ class TetrisViewController: UIViewController {
             // Note: While the pan continues, translation continuously provides the screen position relative to the starting point (in points).
             let translation = recognizer.translation(in: scnView)  // delta screen coordinates
             let velocity = recognizer.velocity(in: scnView)
-            let lateralPanSpeed = abs(velocity.x / 60)
-            let verticalPanSpeed = velocity.y / 60
             
+            if motionState == .hardDrop { return }
             let pastMotionState = motionState
-            
-            // update state
-            switch motionState {
-            case .idle:
-                if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
-                    motionState = .hardDrop
-                } else if lateralPanSpeed > verticalPanSpeed {
-                    motionState = .lateralPan
-                } else if verticalPanSpeed > lateralPanSpeed + Constants.panSpeedSoftDropDeadband {
-                    motionState = .softDrop
-                }
-            case .lateralPan:
-                if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
-                    motionState = .hardDrop
-                } else if verticalPanSpeed > lateralPanSpeed + Constants.panSpeedSoftDropDeadband {
-                    motionState = .softDrop
-                }
-            case .softDrop:
-                if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
-                    motionState = .hardDrop
-                } else if lateralPanSpeed > verticalPanSpeed + Constants.panSpeedLateralDeadband {
-                    motionState = .lateralPan
-                }
-            default:
-                return
-            }
+            updateMotionState(panSpeed: velocity)
 
-            // perform state actions
             switch motionState {
             case .hardDrop:
                 spawnTime = 0  // force immediate start of hard drop in renderer
@@ -425,6 +396,36 @@ class TetrisViewController: UIViewController {
             }
         } else if recognizer.state == .ended {
             if motionState != .hardDrop { frameTime = levelFrameTime }
+        }
+    }
+    
+    private func updateMotionState(panSpeed: CGPoint) {
+        let lateralPanSpeed = abs(panSpeed.x / 60)
+        let verticalPanSpeed = panSpeed.y / 60
+        
+        switch motionState {
+        case .idle:
+            if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
+                motionState = .hardDrop
+            } else if lateralPanSpeed > verticalPanSpeed {
+                motionState = .lateralPan
+            } else if verticalPanSpeed > lateralPanSpeed + Constants.panSpeedSoftDropDeadband {
+                motionState = .softDrop
+            }
+        case .lateralPan:
+            if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
+                motionState = .hardDrop
+            } else if verticalPanSpeed > lateralPanSpeed + Constants.panSpeedSoftDropDeadband {
+                motionState = .softDrop
+            }
+        case .softDrop:
+            if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
+                motionState = .hardDrop
+            } else if lateralPanSpeed > verticalPanSpeed + Constants.panSpeedLateralDeadband {
+                motionState = .lateralPan
+            }
+        default:
+            return
         }
     }
 
@@ -521,11 +522,15 @@ class TetrisViewController: UIViewController {
                     }
                 }
                 boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevalute possible contacts (may not be needed?)
-                let contactedNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)  // occasional crash, here
-                for contactedNode in contactedNodes {
-                    // disregard bumpers that are contacting other blocks within its own shape
-                    if contactedNode.nodeA.parent != fallingShape && contactedNode.nodeB.parent != fallingShape {
-                        return true
+                if let bumperPhysicsBody = contactingBumper.physicsBody {
+                    let contactedNodes = boardScene.physicsWorld.contactTest(with: bumperPhysicsBody, options: nil)
+                    // occasional crash on previous line: "EXC_BAD_ACCESS (code=1, address=0x0)" indicates
+                    // something is trying to access a null pointer (this occurs after viewDidAppear).
+                    for contactedNode in contactedNodes {
+                        // disregard bumpers that are contacting other blocks within its own shape
+                        if contactedNode.nodeA.parent != fallingShape && contactedNode.nodeB.parent != fallingShape {
+                            return true
+                        }
                     }
                 }
             }
@@ -538,12 +543,10 @@ extension TetrisViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         if isRotationRequested {
             rotateShapeIfNotBlocked()
-            // pws: try setting targetPositionX = fallingShape.position.x and disabling panGesture here,
-            // if shape keeps moving through walls (re-enable at end of rotateShapeIfNotBlocked)
         } else {
-            moveShapeAcross()
+            moveShapeAcross()  // not sure if it's important to prevent rotation and translation in the same frame
         }
-        if isShapeFalling {  // pws: maybe move this into if-else block, above
+        if isShapeFalling {
             if time > spawnTime {
                 spawnTime = time + frameTime
                 moveShapeDown()
