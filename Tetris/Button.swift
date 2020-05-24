@@ -22,8 +22,8 @@ class Button: SKSpriteNode {
         setup()
     }
     
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
+    required init?(coder: NSCoder) {
+        super.init(coder: coder)
         setup()
     }
     

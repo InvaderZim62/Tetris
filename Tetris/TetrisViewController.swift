@@ -104,6 +104,7 @@ class TetrisViewController: UIViewController {
     var fallingShape: ShapeNode!
     var isShapeFalling = false
     var motionState: MotionState!
+    var isSpawnRequested = false
     var isRotationRequested = false
     var spawnTime: TimeInterval = 0
     var frameTime: Double!  // instantaneous from time, affects speed of shapes falling
@@ -163,10 +164,15 @@ class TetrisViewController: UIViewController {
         levelRowsCleared = 0
         levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
         frameTime = levelFrameTime
-        spawnShape()
+        hud.showCountdown(from: 3, completionHandler: requestSpawnShape)
+    }
+    
+    private func requestSpawnShape() {
+        isSpawnRequested = true
     }
 
     private func spawnShape() {
+        isSpawnRequested = false
         fallingShape = boardScene.spawnShape()
         targetPositionX = fallingShape.position.x  // scene coordinates
         tapGesture.isEnabled = true
@@ -216,7 +222,7 @@ class TetrisViewController: UIViewController {
         if fallingShape.position.y >= (Float(Constants.blocksPerSide) / 2 - 2.5) * Float(Constants.blockSpacing) {
             gameOver()
         } else {
-            spawnShape()
+            requestSpawnShape()
         }
     }
     
@@ -241,13 +247,13 @@ class TetrisViewController: UIViewController {
         }
     }
     
-    private func startNewGame() {  // called by clicking hud button
+    private func startNewGame() {  // called by clicking hud "New Game" button
         hud.reset()
         boardScene.reset()
         level = 0
         levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
         frameTime = levelFrameTime
-        spawnShape()
+        hud.showCountdown(from: 3, completionHandler: requestSpawnShape)
     }
 
     func moveShapeAcross() {
@@ -522,15 +528,13 @@ class TetrisViewController: UIViewController {
                     }
                 }
                 boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevalute possible contacts (may not be needed?)
-                if let bumperPhysicsBody = contactingBumper.physicsBody {
-                    let contactedNodes = boardScene.physicsWorld.contactTest(with: bumperPhysicsBody, options: nil)
-                    // occasional crash on previous line: "EXC_BAD_ACCESS (code=1, address=0x0)" indicates
-                    // something is trying to access a null pointer (this occurs after viewDidAppear).
-                    for contactedNode in contactedNodes {
-                        // disregard bumpers that are contacting other blocks within its own shape
-                        if contactedNode.nodeA.parent != fallingShape && contactedNode.nodeB.parent != fallingShape {
-                            return true
-                        }
+                let contactedNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
+                // occasional crash on previous line: "EXC_BAD_ACCESS (code=1, address=0x0)" indicates
+                // something is trying to access a null pointer (this occurs after viewDidAppear).
+                for contactedNode in contactedNodes {
+                    // disregard bumpers that are contacting other blocks within its own shape
+                    if contactedNode.nodeA.parent != fallingShape && contactedNode.nodeB.parent != fallingShape {
+                        return true
                     }
                 }
             }
@@ -541,6 +545,9 @@ class TetrisViewController: UIViewController {
 
 extension TetrisViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+        if isSpawnRequested {
+            spawnShape()
+        }
         if isRotationRequested {
             rotateShapeIfNotBlocked()
         } else {
