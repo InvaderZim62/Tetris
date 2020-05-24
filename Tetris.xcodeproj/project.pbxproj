@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		4A2FE1DF247A26B700B62E6B /* CountdownLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2FE1DE247A26B700B62E6B /* CountdownLabel.swift */; };
+		4A2FE1DF247A26B700B62E6B /* CountdownLabelNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2FE1DE247A26B700B62E6B /* CountdownLabelNode.swift */; };
 		4AB87AAE245CD09800DB6525 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AAD245CD09800DB6525 /* AppDelegate.swift */; };
 		4AB87AB2245CD09800DB6525 /* TetrisViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AB1245CD09800DB6525 /* TetrisViewController.swift */; };
 		4AB87AB5245CD09800DB6525 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB87AB3245CD09800DB6525 /* Main.storyboard */; };
@@ -23,7 +23,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		4A2FE1DE247A26B700B62E6B /* CountdownLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownLabel.swift; sourceTree = "<group>"; };
+		4A2FE1DE247A26B700B62E6B /* CountdownLabelNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownLabelNode.swift; sourceTree = "<group>"; };
 		4AB87AAA245CD09800DB6525 /* Tetris.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tetris.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AB87AAD245CD09800DB6525 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4AB87AB1245CD09800DB6525 /* TetrisViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TetrisViewController.swift; sourceTree = "<group>"; };
@@ -78,7 +78,7 @@
 				4AC62FE724664EBE0059816E /* BlockNode.swift */,
 				4AD7D717246F9B5500055E33 /* Hud.swift */,
 				4AF4AE7A24758FA100775E88 /* Button.swift */,
-				4A2FE1DE247A26B700B62E6B /* CountdownLabel.swift */,
+				4A2FE1DE247A26B700B62E6B /* CountdownLabelNode.swift */,
 				4AC62FE9246777630059816E /* Utilities.swift */,
 				4AB87AC1245CD0C400DB6525 /* Supporting Files */,
 				4AB87ABB245CD09900DB6525 /* Info.plist */,
@@ -171,7 +171,7 @@
 				4AF4AE762472FFDF00775E88 /* HighScoresViewController.swift in Sources */,
 				4AB87AC3245CDCED00DB6525 /* BoardScene.swift in Sources */,
 				4AC62FE824664EBE0059816E /* BlockNode.swift in Sources */,
-				4A2FE1DF247A26B700B62E6B /* CountdownLabel.swift in Sources */,
+				4A2FE1DF247A26B700B62E6B /* CountdownLabelNode.swift in Sources */,
 				4AD7D718246F9B5500055E33 /* Hud.swift in Sources */,
 				4AB87AC5245CE80900DB6525 /* ShapeNode.swift in Sources */,
 				4AB87AB2245CD09800DB6525 /* TetrisViewController.swift in Sources */,

@@ -12,7 +12,6 @@ import SpriteKit
 class Hud: SKScene, ButtonDelegate {
     
     var newGameButton: Button!
-    var isCountingDown = false
 
     var level = 0 {
         didSet {
@@ -42,7 +41,7 @@ class Hud: SKScene, ButtonDelegate {
     let levelLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let scoreLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let gameOverLabel = SKLabelNode(fontNamed: "Menlo-Bold")
-    let countdownLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+    let countdownLabel = CountdownLabelNode(fontNamed: "Menlo-Bold")
     var buttonHandler: (() -> Void)?
 
     func setup(buttonHandler: @escaping () -> Void) {
@@ -51,9 +50,8 @@ class Hud: SKScene, ButtonDelegate {
         countdownLabel.position = CGPoint(x: frame.midX, y: 0.5 * frame.height)  // middle of screen
         countdownLabel.fontSize = 100
         countdownLabel.fontColor = .red
-        countdownLabel.isHidden = true
         addChild(countdownLabel)
-                
+        
         let levelTextLabel = SKLabelNode(fontNamed: "Menlo-Bold")
         levelTextLabel.text = "LV"
         levelTextLabel.position = CGPoint(x: 0.16 * frame.width, y: 0.945 * frame.height)  // top left
@@ -96,47 +94,7 @@ class Hud: SKScene, ButtonDelegate {
     }
     
     func showCountdown(from count: Int, completionHandler: @escaping () -> Void) {
-        let duration = 0.5
-        let grow = SKAction.scale(to: 1.0, duration: duration)
-        let shrink = SKAction.scale(to: 0.0, duration: duration)
-
-        if count == 0 {
-            countdownLabel.text = "Go!"
-        } else {
-            countdownLabel.text = String(count)
-        }
-        if !isCountingDown {
-            isCountingDown = true
-            countdownLabel.setScale(0.0)
-            countdownLabel.isHidden = false
-        }
-        countdownLabel.run(
-            SKAction.sequence([grow, shrink]),
-            completion: {
-                if count == 0 {
-                    self.isCountingDown = false
-                    self.countdownLabel.isHidden = true
-                    completionHandler()
-                } else {
-                    self.showCountdown(from: count - 1, completionHandler: completionHandler)
-                }
-        }
-        )
-        
-        // this version ends with large "GO!"
-//        countdownLabel.run(
-//            grow,
-//            completion: {
-//                if count == 0 {
-//                    self.isCountingDown = false
-//                } else {
-//                    self.countdownLabel.run(
-//                        shrink,
-//                        completion: {
-//                            self.showCountdown(from: count - 1)
-//                    })
-//                }
-//        })
+        countdownLabel.showCountdown(from: count, completionHandler: completionHandler)
     }
     
     // MARK: - ButtonDelegate
