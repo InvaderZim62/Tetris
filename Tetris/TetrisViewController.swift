@@ -146,22 +146,14 @@ class TetrisViewController: UIViewController {
         scnView.addGestureRecognizer(panGesture)
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-
-        // try reading high scores from UserDefaults
-        let defaults = UserDefaults.standard
-        if let scores = defaults.array(forKey: "highScores") as? [Int] {
-            highScores = scores
-            highScoreInitials = defaults.stringArray(forKey: "highScoreInitials")!
-        } else {
-            highScores = [Int](repeating: Constants.defaultScore, count: 10)
-            highScoreInitials = [String](repeating: "TET", count: 10)
-        }
-    }
-    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        startNewGame()
+    }
+    
+    private func startNewGame() {  // called by clicking hud "New Game" button (see setupHud)
+        hud.reset()
+        boardScene.reset()
         level = 0
         levelRowsCleared = 0
         levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
@@ -237,6 +229,7 @@ class TetrisViewController: UIViewController {
         hud.isGameOver = true
         audioPlayer?.stop()
         tapGesture.isEnabled = false  // disable, so tapping on "New Game" doesn't cause next falling piece to rotate (re-enable in spawnShape)
+        getHighScoresFromUserDefaults()
         if hud.score > highScores.min()! {
             // sort both arrays by highScore
             let combined = zip(highScores, highScoreInitials).sorted { $0.0 > $1.0 }  // returns tuple
@@ -255,13 +248,16 @@ class TetrisViewController: UIViewController {
         }
     }
     
-    private func startNewGame() {  // called by clicking hud "New Game" button
-        hud.reset()
-        boardScene.reset()
-        level = 0
-        levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
-        frameTime = levelFrameTime
-        hud.showCountdown(from: 3, completionHandler: countdownComplete)
+    private func getHighScoresFromUserDefaults() {
+        // try reading high scores from UserDefaults
+        let defaults = UserDefaults.standard
+        if let scores = defaults.array(forKey: "highScores") as? [Int] {
+            highScores = scores
+            highScoreInitials = defaults.stringArray(forKey: "highScoreInitials")!
+        } else {
+            highScores = [Int](repeating: Constants.defaultScore, count: 10)
+            highScoreInitials = [String](repeating: "TET", count: 10)
+        }
     }
 
     func moveShapeAcross() {

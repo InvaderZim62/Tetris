@@ -56,7 +56,7 @@ class HighScoresViewController: UIViewController, UITextFieldDelegate {
     
     // MARK: - UITextFieldDelegate
 
-    // called after user enters Done on keyboard (in top scores view)
+    // called after user enters Return on keyboard
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         initialsTextField.resignFirstResponder()
         highScoreInitials[highScores.count - 1] = textField.text!  // replace name
