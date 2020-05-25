@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4A2FE1DF247A26B700B62E6B /* CountdownLabelNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A2FE1DE247A26B700B62E6B /* CountdownLabelNode.swift */; };
+		4A41B83F247B3FEF00FE5943 /* Tetris song.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 4A41B83E247B3FEF00FE5943 /* Tetris song.mp3 */; };
 		4AB87AAE245CD09800DB6525 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AAD245CD09800DB6525 /* AppDelegate.swift */; };
 		4AB87AB2245CD09800DB6525 /* TetrisViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AB1245CD09800DB6525 /* TetrisViewController.swift */; };
 		4AB87AB5245CD09800DB6525 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 4AB87AB3245CD09800DB6525 /* Main.storyboard */; };
@@ -24,6 +25,7 @@
 
 /* Begin PBXFileReference section */
 		4A2FE1DE247A26B700B62E6B /* CountdownLabelNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CountdownLabelNode.swift; sourceTree = "<group>"; };
+		4A41B83E247B3FEF00FE5943 /* Tetris song.mp3 */ = {isa = PBXFileReference; lastKnownFileType = audio.mp3; path = "Tetris song.mp3"; sourceTree = "<group>"; };
 		4AB87AAA245CD09800DB6525 /* Tetris.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tetris.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4AB87AAD245CD09800DB6525 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		4AB87AB1245CD09800DB6525 /* TetrisViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TetrisViewController.swift; sourceTree = "<group>"; };
@@ -80,6 +82,7 @@
 				4AF4AE7A24758FA100775E88 /* Button.swift */,
 				4A2FE1DE247A26B700B62E6B /* CountdownLabelNode.swift */,
 				4AC62FE9246777630059816E /* Utilities.swift */,
+				4A41B83E247B3FEF00FE5943 /* Tetris song.mp3 */,
 				4AB87AC1245CD0C400DB6525 /* Supporting Files */,
 				4AB87ABB245CD09900DB6525 /* Info.plist */,
 			);
@@ -157,6 +160,7 @@
 				4AB87ABA245CD09900DB6525 /* LaunchScreen.storyboard in Resources */,
 				4AB87AB7245CD09900DB6525 /* Assets.xcassets in Resources */,
 				4AB87AB5245CD09800DB6525 /* Main.storyboard in Resources */,
+				4A41B83F247B3FEF00FE5943 /* Tetris song.mp3 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -55,6 +55,7 @@
 import UIKit
 import QuartzCore
 import SceneKit
+import AVFoundation  // needed for AVAudioPlayer
 
 enum ScreenSide: Int {
     case left
@@ -94,6 +95,7 @@ class TetrisViewController: UIViewController {
     let boardScene = BoardScene()
     var hud = Hud()
 
+    var audioPlayer: AVAudioPlayer?
     var highScores = [Int]()
     var highScoreInitials = [String]()
     var tapGesture = UITapGestureRecognizer()
@@ -164,7 +166,12 @@ class TetrisViewController: UIViewController {
         levelRowsCleared = 0
         levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
         frameTime = levelFrameTime
-        hud.showCountdown(from: 3, completionHandler: requestSpawnShape)
+        hud.showCountdown(from: 3, completionHandler: countdownComplete)
+    }
+    
+    private func countdownComplete() {
+        playTetrisSong()
+        requestSpawnShape()
     }
     
     private func requestSpawnShape() {
@@ -228,6 +235,7 @@ class TetrisViewController: UIViewController {
     
     private func gameOver() {
         hud.isGameOver = true
+        audioPlayer?.stop()
         tapGesture.isEnabled = false  // disable, so tapping on "New Game" doesn't cause next falling piece to rotate (re-enable in spawnShape)
         if hud.score > highScores.min()! {
             // sort both arrays by highScore
@@ -253,7 +261,7 @@ class TetrisViewController: UIViewController {
         level = 0
         levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
         frameTime = levelFrameTime
-        hud.showCountdown(from: 3, completionHandler: requestSpawnShape)
+        hud.showCountdown(from: 3, completionHandler: countdownComplete)
     }
 
     func moveShapeAcross() {
@@ -540,6 +548,22 @@ class TetrisViewController: UIViewController {
             }
         }
         return false
+    }
+    
+    func playTetrisSong() {
+        guard let url = Bundle.main.url(forResource: "Tetris song", withExtension: "mp3") else { return }
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
+            audioPlayer = try AVAudioPlayer(contentsOf: url, fileTypeHint: AVFileType.wav.rawValue)
+            audioPlayer?.numberOfLoops = -1
+            guard let player = audioPlayer else { return }
+            player.play()
+            
+        } catch let error {
+            print(error.localizedDescription)
+        }
     }
 }
 
