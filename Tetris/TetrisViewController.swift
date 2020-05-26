@@ -567,17 +567,13 @@ extension TetrisViewController: SCNSceneRendererDelegate {
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         if isSpawnRequested {
             spawnShape()
-        }
-        if isRotationRequested {
+        } else if isShapeFalling && time > spawnTime {
+            spawnTime = time + frameTime
+            moveShapeDown()
+        } else if isRotationRequested {
             rotateShapeIfNotBlocked()
         } else {
             moveShapeAcross()  // not sure if it's important to prevent rotation and translation in the same frame
-        }
-        if isShapeFalling {
-            if time > spawnTime {
-                spawnTime = time + frameTime
-                moveShapeDown()
-            }
         }
     }
 }
