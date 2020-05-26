@@ -15,6 +15,7 @@ class HighScoresViewController: UIViewController, UITextFieldDelegate {
     
     @IBOutlet var highScoreLabels: [UILabel]!
     @IBOutlet var highScoreInitialsLabels: [UILabel]!
+    @IBOutlet weak var doneButton: UIButton!
     @IBOutlet weak var initialsTextField: UITextField! {
         didSet {
             initialsTextField.delegate = self
@@ -36,6 +37,7 @@ class HighScoresViewController: UIViewController, UITextFieldDelegate {
             highScores = [Int](repeating: Constants.defaultScore, count: 10)
             highScoreInitials = [String](repeating: "TET", count: 10)
         }
+        doneButton.isHidden = true
         updateAllLabels()
     }
     
@@ -58,6 +60,7 @@ class HighScoresViewController: UIViewController, UITextFieldDelegate {
 
     // called after user enters Return on keyboard
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        doneButton.isHidden = false
         initialsTextField.resignFirstResponder()
         highScoreInitials[highScores.count - 1] = textField.text!  // replace name
         updateAllLabels()

@@ -198,7 +198,7 @@ class TetrisViewController: UIViewController {
             handleShapeReachingBottom()
         }
     }
-        
+    
     private func handleShapeReachingBottom() {
         // shape reached bottom, remove rows and re-spawn new shape
         panGesture.isEnabled = false  // disable panGesture (if any), so it doesn't carry over to next falling shape (re-enable in spawnShape)
