@@ -5,6 +5,10 @@
 //  Created by Phil Stern on 5/23/20.
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
+//  CountdownLabelNode is a subclass of SKLabelNode.  Initially, it has no text, so nothing is
+//  displayed, until member function showCountdown is called.  Setting isHidden may not be
+//  necessary.
+//
 
 import Foundation
 import SpriteKit
@@ -37,7 +41,7 @@ class CountdownLabelNode: SKLabelNode {
                     self.isHidden = true
                     completionHandler()
                 } else {
-                    self.showCountdown(from: count - 1, completionHandler: completionHandler)
+                    self.showCountdown(from: count - 1, completionHandler: completionHandler)  // call recursively with one less count, until 0
                 }
         }
         )

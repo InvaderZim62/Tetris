@@ -5,6 +5,19 @@
 //  Created by Phil Stern on 4/23/20.
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
+//  The Hud shows information (level, score, game status) along the top and center of the
+//  screen using SKLabelNodes.  The center label switches between being blank and showing
+//  "Game Over" (changing to "New Game" after 2 seconds).  An invisible custom button
+//  (newGameButton) is aligned with the status label and is enabled when "New Game" is
+//  shown.  When the button is pressed, the buttonHandler (passed in) is called.
+//
+//  A CountdownLabelNode (subclass of SKLabelNode) is also positioned in the center of the
+//  screen.  Calling member function showCountdown starts the countdown from any provided
+//  number, then hides when done.
+//
+//  Note: TestrisViewController uses a tap gesture, which is disabled at the end of the
+//  game, allowing newGameButton to receive the tap.
+//
 
 import Foundation
 import SpriteKit
@@ -26,13 +39,13 @@ class Hud: SKScene, ButtonDelegate {
     var isGameOver = false {
         didSet {
             if isGameOver {
-                gameOverLabel.text = "Game Over"
+                gameStatusLabel.text = "Game Over"
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                     self.newGameButton.isUserInteractionEnabled = true
-                    self.gameOverLabel.text = "New Game"
+                    self.gameStatusLabel.text = "New Game"
                 }
             } else {
-                gameOverLabel.text = ""
+                gameStatusLabel.text = ""
                 newGameButton.isUserInteractionEnabled = false
             }
         }
@@ -40,7 +53,7 @@ class Hud: SKScene, ButtonDelegate {
 
     let levelLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let scoreLabel = SKLabelNode(fontNamed: "Menlo-Bold")
-    let gameOverLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+    let gameStatusLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let countdownLabel = CountdownLabelNode(fontNamed: "Menlo-Bold")
     var buttonHandler: (() -> Void)?
 
@@ -74,9 +87,9 @@ class Hud: SKScene, ButtonDelegate {
         addChild(scoreLabel)
         score = 0
 
-        gameOverLabel.position = CGPoint(x: frame.midX, y: 0.5 * frame.height)  // middle of screen
-        gameOverLabel.fontSize = 30
-        addChild(gameOverLabel)
+        gameStatusLabel.position = CGPoint(x: frame.midX, y: 0.5 * frame.height)  // middle of screen
+        gameStatusLabel.fontSize = 30
+        addChild(gameStatusLabel)
         
         // line up button with gameOverLabel (button doesn't have its own text)
         newGameButton = Button(texture: nil, color: .clear, size: CGSize(width: 100, height: 30))
