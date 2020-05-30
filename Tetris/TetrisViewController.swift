@@ -123,6 +123,17 @@ class TetrisViewController: UIViewController {
     //                level:  0   1   2   3   4   5   6   7  8  9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29+
     let framesPerGridcell = [48, 43, 38, 33, 28, 23, 18, 13, 8, 6, 5, 5, 5, 4, 4, 4, 3, 3, 3, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1]
     let framesPerSecond = 60.0988  // Nintendo NES
+    
+    var isSpeakerTapped = false
+    var isSoundMuted = false {
+        didSet{
+            if isSoundMuted {
+                audioPlayer?.stop()
+            } else {
+                audioPlayer?.play()
+            }
+        }
+    }
 
     override var shouldAutorotate: Bool {
         return true
@@ -141,7 +152,8 @@ class TetrisViewController: UIViewController {
         setupCamera()
         setupLight()
         setupHud()
-        
+        setupAudioPlayer()
+
         // add tap gesture to rotate shapes
         tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap))
         scnView.addGestureRecognizer(tapGesture)
@@ -166,8 +178,13 @@ class TetrisViewController: UIViewController {
         hud.showCountdown(from: 3, completionHandler: countdownComplete)
     }
     
+    private func selectSound(isSoundMuted: Bool) {  // called by clicking hud speaker icon (see setupHud)
+        self.isSoundMuted = isSoundMuted
+        isSpeakerTapped = true  // don't rotate shape when speaker is tapped
+    }
+
     private func countdownComplete() {
-        playTetrisSong()
+        if !isSoundMuted { audioPlayer?.play() }
         requestSpawnShape()
     }
     
@@ -368,7 +385,10 @@ class TetrisViewController: UIViewController {
     
     // rotate falling shape 90 deg CCW when tapped (unless rotation will cause contact with edges, or other blocks)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        if isShapeFalling { isRotationRequested = true }  // rotation occurs at next renderer frame
+        if isShapeFalling && !isSpeakerTapped {  // don't rotate if speaker was tapped (relies on selectSound getting called before handleTap)
+            isRotationRequested = true  // rotation occurs at next renderer frame
+        }
+        isSpeakerTapped = false
     }
     
     // move shape left/right when panning across, or down when panning down
@@ -477,10 +497,24 @@ class TetrisViewController: UIViewController {
         boardScene.rootNode.addChildNode(ambientLightNode)
     }
     
-    func setupHud() {
+    private func setupHud() {
         hud = Hud(size: view.bounds.size)
         hud.setup(buttonHandler: self.startNewGame, soundSelectionHandler: self.selectSound)
         scnView.overlaySKScene = hud
+    }
+
+    func setupAudioPlayer() {
+        guard let url = Bundle.main.url(forResource: "Tetris song", withExtension: "mp3") else { return }
+        do {
+            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
+            try AVAudioSession.sharedInstance().setActive(true)
+            
+            audioPlayer = try AVAudioPlayer(contentsOf: url, fileTypeHint: AVFileType.wav.rawValue)
+            audioPlayer?.numberOfLoops = -1  // repeat indefinitely
+            
+        } catch let error {
+            print(error.localizedDescription)
+        }
     }
 
     // MARK: - Utility Functions
@@ -549,30 +583,6 @@ class TetrisViewController: UIViewController {
             }
         }
         return false
-    }
-    
-    func selectSound(isSoundMuted: Bool) {
-        if isSoundMuted {
-            audioPlayer?.stop()
-        } else {
-            audioPlayer?.play()
-        }
-    }
-    
-    func playTetrisSong() {
-        guard let url = Bundle.main.url(forResource: "Tetris song", withExtension: "mp3") else { return }
-        do {
-            try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
-            try AVAudioSession.sharedInstance().setActive(true)
-            
-            audioPlayer = try AVAudioPlayer(contentsOf: url, fileTypeHint: AVFileType.wav.rawValue)
-            audioPlayer?.numberOfLoops = -1
-            guard let player = audioPlayer else { return }
-            player.play()
-            
-        } catch let error {
-            print(error.localizedDescription)
-        }
     }
 }
 
