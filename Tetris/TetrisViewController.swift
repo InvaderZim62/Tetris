@@ -363,7 +363,7 @@ class TetrisViewController: UIViewController {
     
     // rotate falling shape 90 deg CCW when tapped (unless rotation will cause contact with edges, or other blocks)
     @objc func handleTap(recognizer: UITapGestureRecognizer) {
-        isRotationRequested = true  // rotation occurs at next renderer frame
+        if isShapeFalling { isRotationRequested = true }  // rotation occurs at next renderer frame
     }
     
     // move shape left/right when panning across, or down when panning down
