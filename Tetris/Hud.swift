@@ -116,7 +116,7 @@ class Hud: SKScene, ButtonDelegate {
         
         isGameOver = false  // must be after initialization of newGameButton, since it causes newGameButton.isUserInteractionEnabled to be set above
         
-        soundSelectionLabel.position = CGPoint(x: 0.95 * frame.width, y: 0.02 * frame.height)  // bottom right
+        soundSelectionLabel.position = CGPoint(x: 0.92 * frame.width, y: 0.04 * frame.height)  // bottom right
         soundSelectionLabel.fontSize = 20
         addChild(soundSelectionLabel)
         isSoundMuted = false
