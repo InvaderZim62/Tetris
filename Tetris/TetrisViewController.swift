@@ -15,6 +15,11 @@
 //  panning.  To get around this, I reset frameTime to the normal (non-softDrop) value, if moveShapeDown is
 //  called twice, without a call to handlePan (see isPanHandled).
 //
+//  If hud sets isUserInteractionsEnabled = true (default), touches at the TestrisViewController level are
+//  intercepted by the hud (and handled by hud.touchesBegan).  Tap gestures at the TetrisViewController level
+//  are still recognized.  If hud sets isUserInteractionEnabled = false, touches and tap gestures at the
+//  TestrisViewController are both recognized, so either can be used to do a hitTest.
+//
 //  Usefull SCeneKit conversions...
 //
 //    convertPosition   Convert position of node in one reference to another reference
@@ -474,7 +479,7 @@ class TetrisViewController: UIViewController {
     
     func setupHud() {
         hud = Hud(size: view.bounds.size)
-        hud.setup(buttonHandler: self.startNewGame)
+        hud.setup(buttonHandler: self.startNewGame, soundSelectionHandler: self.selectSound)
         scnView.overlaySKScene = hud
     }
 
@@ -544,6 +549,14 @@ class TetrisViewController: UIViewController {
             }
         }
         return false
+    }
+    
+    func selectSound(isSoundMuted: Bool) {
+        if isSoundMuted {
+            audioPlayer?.stop()
+        } else {
+            audioPlayer?.play()
+        }
     }
     
     func playTetrisSong() {

@@ -11,6 +11,11 @@
 //  (newGameButton) is aligned with the status label and is enabled when "New Game" is
 //  shown.  When the button is pressed, the buttonHandler (passed in) is called.
 //
+//  A sound selection label is located at the bottom right corner, to allow toggling
+//  between sound on and off.  The label is monitored with touchesBegan, rather than using
+//  a second custom button.  Touching the label causes the soundSelectionHandler (passed
+//  in) to be called.
+//
 //  A CountdownLabelNode (subclass of SKLabelNode) is also positioned in the center of the
 //  screen.  Calling member function showCountdown starts the countdown from any provided
 //  number, then hides when done.
@@ -50,15 +55,27 @@ class Hud: SKScene, ButtonDelegate {
             }
         }
     }
+    var isSoundMuted = false {
+        didSet{
+            if isSoundMuted {
+                soundSelectionLabel.text = "🔇"
+            } else {
+                soundSelectionLabel.text = "🔈"
+            }
+        }
+    }
 
     let levelLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let scoreLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let gameStatusLabel = SKLabelNode(fontNamed: "Menlo-Bold")
+    let soundSelectionLabel = SKLabelNode()
     let countdownLabel = CountdownLabelNode(fontNamed: "Menlo-Bold")
     var buttonHandler: (() -> Void)?
+    var soundSelectionHandler: ((Bool) -> Void)?
 
-    func setup(buttonHandler: @escaping () -> Void) {
+    func setup(buttonHandler: @escaping () -> Void, soundSelectionHandler: @escaping (Bool) -> Void) {
         self.buttonHandler = buttonHandler
+        self.soundSelectionHandler = soundSelectionHandler
         
         countdownLabel.position = CGPoint(x: frame.midX, y: 0.5 * frame.height)  // middle of screen
         countdownLabel.fontSize = 100
@@ -78,7 +95,7 @@ class Hud: SKScene, ButtonDelegate {
 
         let scoreTextLabel = SKLabelNode(fontNamed: "Menlo-Bold")
         scoreTextLabel.text = "SCORE"
-        scoreTextLabel.position = CGPoint(x: 0.5 * frame.width, y: 0.95 * frame.height)  // top middle
+        scoreTextLabel.position = CGPoint(x: frame.midX, y: 0.95 * frame.height)  // top middle
         scoreTextLabel.fontSize = 20
         addChild(scoreTextLabel)
         
@@ -91,13 +108,18 @@ class Hud: SKScene, ButtonDelegate {
         gameStatusLabel.fontSize = 30
         addChild(gameStatusLabel)
         
-        // line up button with gameOverLabel (button doesn't have its own text)
+        // line up button with gameStatusLabel (button doesn't have its own text)
         newGameButton = Button(texture: nil, color: .clear, size: CGSize(width: 100, height: 30))
         newGameButton.position = CGPoint(x: frame.midX, y: 0.5 * frame.height)
         newGameButton.delegate = self
         addChild(newGameButton)
         
         isGameOver = false  // must be after initialization of newGameButton, since it causes newGameButton.isUserInteractionEnabled to be set above
+        
+        soundSelectionLabel.position = CGPoint(x: 0.95 * frame.width, y: 0.02 * frame.height)  // bottom right
+        soundSelectionLabel.fontSize = 20
+        addChild(soundSelectionLabel)
+        isSoundMuted = false
     }
     
     func reset() {
@@ -110,6 +132,15 @@ class Hud: SKScene, ButtonDelegate {
         countdownLabel.showCountdown(from: count, completionHandler: completionHandler)
     }
     
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        let touch = touches.first!
+        let location = touch.location(in: self)
+        if soundSelectionLabel.contains(location) {
+            isSoundMuted = !isSoundMuted
+            soundSelectionHandler?(isSoundMuted)
+        }
+    }
+
     // MARK: - ButtonDelegate
     
     func buttonClicked(sender: Button) {
