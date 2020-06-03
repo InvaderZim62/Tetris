@@ -15,12 +15,12 @@
 //  panning.  To get around this, I reset frameTime to the normal (non-softDrop) value, if moveShapeDown is
 //  called twice, without a call to handlePan (see isPanHandled).
 //
-//  If hud sets isUserInteractionsEnabled = true (default), touches at the TestrisViewController level are
-//  intercepted by the hud (and handled by hud.touchesBegan).  Tap gestures at the TetrisViewController level
-//  are still recognized.  If hud sets isUserInteractionEnabled = false, touches and tap gestures at the
-//  TestrisViewController are both recognized, so either can be used to do a hitTest.
+//  Note: If hud sets isUserInteractionsEnabled = true (default), touches at the TestrisViewController level
+//  are intercepted by the hud (and handled by hud.touchesBegan).  Tap gestures at the TetrisViewController
+//  level are still recognized.  If hud sets isUserInteractionEnabled = false, touches and tap gestures at
+//  the TestrisViewController are both recognized, so either can be used to do a hitTest.
 //
-//  Usefull SCeneKit conversions...
+//  Usefull SceneKit conversions...
 //
 //    convertPosition   Convert position of node in one reference to another reference
 //
@@ -75,9 +75,9 @@ struct Constants {
     static let backgroundThickness: CGFloat = 0.1
     static let blockThickness: CGFloat = 0.5
     static let cameraDistance: CGFloat = 23 * Constants.blockSpacing
-    static let blocksPerBase = 12        // frame dimension
-    static let blocksPerSide = 22        // frame dimension
-    static let defaultScore = 1000      // default high score for top 10 list (must beat to get on list)
+    static let blocksPerBase = 12        // edge dimension
+    static let blocksPerSide = 22        // edge dimension
+    static let defaultScore = 1000       // default high score for top 10 list (must beat to get on list)
     static let softDropTimeFrame = 0.05  // seconds
     static let hardDropTimeFrame = 0.005 // seconds
     static let hardDropPanSpeedThreshold: CGFloat = 20.0  // y-speed to start hard drop
@@ -110,7 +110,7 @@ class TetrisViewController: UIViewController {
     var isPanHandled = false
     var fallingShape: ShapeNode!
     var isShapeFalling = false
-    var motionState: MotionState!
+    var motionState = MotionState.idle
     var isSpawnRequested = false
     var isRotationRequested = false
     var spawnTime: TimeInterval = 0
@@ -431,6 +431,7 @@ class TetrisViewController: UIViewController {
             }
         } else if recognizer.state == .ended {
             if motionState != .hardDrop { frameTime = levelFrameTime }
+            motionState = .idle
         }
     }
     
