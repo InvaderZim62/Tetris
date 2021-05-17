@@ -9,7 +9,7 @@
 import Foundation
 import SpriteKit
 
-protocol ButtonDelegate: class {
+protocol ButtonDelegate: AnyObject {
     func buttonClicked(sender: Button)
 }
 

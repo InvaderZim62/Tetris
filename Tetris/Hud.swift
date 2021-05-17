@@ -55,15 +55,7 @@ class Hud: SKScene, ButtonDelegate {
             }
         }
     }
-    var isSoundMuted = false {
-        didSet{
-            if isSoundMuted {
-                soundSelectionLabel.text = "🔇"
-            } else {
-                soundSelectionLabel.text = "🔈"
-            }
-        }
-    }
+    var isSoundMuted = false { didSet { soundSelectionLabel.text = isSoundMuted ? "🔇" : "🔈" } }
 
     let levelLabel = SKLabelNode(fontNamed: "Menlo-Bold")
     let scoreLabel = SKLabelNode(fontNamed: "Menlo-Bold")
