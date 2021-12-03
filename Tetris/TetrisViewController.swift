@@ -6,7 +6,7 @@
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
 //  Note: calls to contactTest (or functions that call contactTest) must be made from the renderer loop.
-//  Ealier versions of the app called contactTest from a sepatate simulation loop, and from the pan gesture.
+//  Earlier versions of the app called contactTest from a separate simulation loop, and from the pan gesture.
 //  This resulted in contactTest returning no contacts, when there have been, resulting in shapes moving
 //  through other blocks.
 //
@@ -15,12 +15,12 @@
 //  panning.  To get around this, I reset frameTime to the normal (non-softDrop) value, if moveShapeDown is
 //  called twice, without a call to handlePan (see isPanHandled).
 //
-//  Note: If hud sets isUserInteractionsEnabled = true (default), touches at the TestrisViewController level
+//  Note: If hud sets isUserInteractionsEnabled = true (default), touches at the TetrisViewController level
 //  are intercepted by the hud (and handled by hud.touchesBegan).  Tap gestures at the TetrisViewController
 //  level are still recognized.  If hud sets isUserInteractionEnabled = false, touches and tap gestures at
-//  the TestrisViewController are both recognized, so either can be used to do a hitTest.
+//  the TetrisViewController are both recognized, so either can be used to do a hitTest.
 //
-//  Usefull SceneKit conversions...
+//  Useful SceneKit conversions...
 //
 //    convertPosition   Convert position of node in one reference to another reference
 //
@@ -51,7 +51,7 @@
 //
 //    contactTest       Return nodes contacting input node
 //
-//                      ex.  boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to re-evalute possible contacts (may not be needed?)
+//                      ex.  boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to re-evaluate possible contacts (may not be needed?)
 //                           let contactedNodes = boardScene.physicsWorld.contactTest(with: inputNode.physicsBody!, options: nil)
 //                           inputNode is a node at any level within the scene
 //                           contactedNodes = [SCNPhysicsContact]  // contactedNodes[0].nodeA & .nodeB (one being the inputNode)
@@ -587,7 +587,7 @@ class TetrisViewController: UIViewController {
     }
 }
 
-extension TetrisViewController: SCNSceneRendererDelegate {
+extension TetrisViewController: SCNSceneRendererDelegate {  // requires scnView.delegate = self
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         if isSpawnRequested {
             spawnShape()

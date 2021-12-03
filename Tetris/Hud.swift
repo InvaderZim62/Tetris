@@ -20,7 +20,7 @@
 //  screen.  Calling member function showCountdown starts the countdown from any provided
 //  number, then hides when done.
 //
-//  Note: TestrisViewController uses a tap gesture, which is disabled at the end of the
+//  Note: TetrisViewController uses a tap gesture, which is disabled at the end of the
 //  game, allowing newGameButton to receive the tap.
 //
 

@@ -29,7 +29,7 @@ enum ShapeType: Int {
     }
 }
 
-class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make a tetris shape
+class ShapeNode: SCNNode {  // ShapeNode is the parent node of blocks that make a Tetris shape
     
     var type = ShapeType.L
     var scaleFactor: CGFloat = 1
