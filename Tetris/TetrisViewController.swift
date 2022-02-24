@@ -107,6 +107,7 @@ class TetrisViewController: UIViewController {
     var panGesture = UIPanGestureRecognizer()
     var shapeScreenStartLocation: SCNVector3!
     var targetPositionX: Float = 0.0
+    var isShowSignUp = false
     var isPanHandled = false
     var fallingShape: ShapeNode!
     var isShapeFalling = false
@@ -165,7 +166,16 @@ class TetrisViewController: UIViewController {
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        startNewGame()
+        brieflyShowScores()
+    }
+    
+    private func brieflyShowScores() {
+        isShowSignUp = false
+        performSegue(withIdentifier: "Show High Scores", sender: self)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+            self.dismiss(animated: true)
+            self.startNewGame()
+        }
     }
     
     private func startNewGame() {  // called by clicking hud "New Game" button (see setupHud)
@@ -265,7 +275,8 @@ class TetrisViewController: UIViewController {
                 let defaults = UserDefaults.standard
                 defaults.set(self.highScores, forKey: "highScores")
                 defaults.set(self.highScoreInitials, forKey: "highScoreInitials")
-                self.performSegue(withIdentifier: "Show High Scores", sender: self)  // prepare(for segue:) not needed
+                self.isShowSignUp = true
+                self.performSegue(withIdentifier: "Show High Scores", sender: self)
             }
         }
     }
@@ -500,7 +511,7 @@ class TetrisViewController: UIViewController {
     
     private func setupHud() {
         hud = Hud(size: view.bounds.size)
-        hud.setup(buttonHandler: self.startNewGame, soundSelectionHandler: self.selectSound)
+        hud.setup(buttonHandler: self.brieflyShowScores, soundSelectionHandler: self.selectSound)
         scnView.overlaySKScene = hud
     }
 
@@ -571,7 +582,7 @@ class TetrisViewController: UIViewController {
                         contactingBumper = blockNode.bottomBumper
                     }
                 }
-                boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevalute possible contacts (may not be needed?)
+                boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevaluate possible contacts (may not be needed?)
                 let contactedNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
                 // occasional crash on previous line: "EXC_BAD_ACCESS (code=1, address=0x0)" indicates
                 // something is trying to access a null pointer (this occurs after viewDidAppear).
@@ -584,6 +595,16 @@ class TetrisViewController: UIViewController {
             }
         }
         return false
+    }
+    
+    // MARK: - Segue
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "Show High Scores" {
+            if let hsvc = segue.destination as? HighScoresViewController {
+                hsvc.isShowSignUp = isShowSignUp
+            }
+        }
     }
 }
 

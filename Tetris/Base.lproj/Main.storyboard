@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="18122" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="BV1-FR-VrT">
     <device id="retina4_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="18093"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -237,6 +237,7 @@
                     <connections>
                         <outlet property="doneButton" destination="zzT-Cw-tde" id="Qwh-CK-sAJ"/>
                         <outlet property="initialsTextField" destination="SWI-2O-4OE" id="CP5-2u-HVb"/>
+                        <outlet property="signUpLabel" destination="cmU-gY-FXl" id="AYa-2f-Jbh"/>
                         <outletCollection property="highScoreLabels" destination="gbP-DE-sk6" collectionClass="NSMutableArray" id="7RX-JY-AGN"/>
                         <outletCollection property="highScoreLabels" destination="Bbh-Rp-Dqp" collectionClass="NSMutableArray" id="weQ-hu-k33"/>
                         <outletCollection property="highScoreLabels" destination="wWZ-ay-hhb" collectionClass="NSMutableArray" id="Bsd-td-Ne8"/>

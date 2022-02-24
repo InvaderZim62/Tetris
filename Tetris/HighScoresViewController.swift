@@ -12,10 +12,12 @@ class HighScoresViewController: UIViewController, UITextFieldDelegate {
 
     var highScores = [Int]()
     var highScoreInitials = [String]()
+    var isShowSignUp = true
     
     @IBOutlet var highScoreLabels: [UILabel]!
     @IBOutlet var highScoreInitialsLabels: [UILabel]!
     @IBOutlet weak var doneButton: UIButton!
+    @IBOutlet weak var signUpLabel: UILabel!
     @IBOutlet weak var initialsTextField: UITextField! {
         didSet {
             initialsTextField.delegate = self
@@ -37,6 +39,8 @@ class HighScoresViewController: UIViewController, UITextFieldDelegate {
             highScores = [Int](repeating: Constants.defaultScore, count: 10)
             highScoreInitials = [String](repeating: "TET", count: 10)
         }
+        signUpLabel.isHidden = !isShowSignUp
+        initialsTextField.isHidden = !isShowSignUp
         doneButton.isHidden = true
         updateAllLabels()
     }
