@@ -5,9 +5,12 @@
 //  Created by Phil Stern on 5/1/20.
 //  Copyright © 2020 Phil Stern. All rights reserved.
 //
+//  Initial setup: File | New | Project | Game (Game Technology: SceneKit)
+//  Delete art.scnassets (move to Trash)
+//
 //  Note: calls to contactTest (or functions that call contactTest) must be made from the renderer loop.
 //  Earlier versions of the app called contactTest from a separate simulation loop, and from the pan gesture.
-//  This resulted in contactTest returning no contacts, when there have been, resulting in shapes moving
+//  This resulted in contactTest returning no contacts, when there were, resulting in shapes moving
 //  through other blocks.
 //
 //  Note: handlePan stopped getting called during softDrop, because moveShapeDown was starving the background
@@ -583,12 +586,12 @@ class TetrisViewController: UIViewController {
                     }
                 }
                 boardScene.physicsWorld.updateCollisionPairs()  // force physics engine to reevaluate possible contacts (may not be needed?)
-                let contactedNodes = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
+                let contacts = boardScene.physicsWorld.contactTest(with: contactingBumper.physicsBody!, options: nil)
                 // occasional crash on previous line: "EXC_BAD_ACCESS (code=1, address=0x0)" indicates
                 // something is trying to access a null pointer (this occurs after viewDidAppear).
-                for contactedNode in contactedNodes {
+                for contact in contacts {
                     // disregard bumpers that are contacting other blocks within its own shape
-                    if contactedNode.nodeA.parent != fallingShape && contactedNode.nodeB.parent != fallingShape {
+                    if contact.nodeA.parent != fallingShape && contact.nodeB.parent != fallingShape {
                         return true
                     }
                 }
