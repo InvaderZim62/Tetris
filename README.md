@@ -21,10 +21,12 @@ a movement is made, it is checked for potential contacts with other shapes or th
 
 ### Rotation contacts
 
-Determine where each block would be, if rotated 90 deg.  Perform a hit test at that location, to see
-if there is another block there.  If no contacts, make the 90 degree rotation.
+Determine where each of the shape's child-blocks would be, if the shape were rotated 90 deg.
+Perform a hit test at those locations, to see if anything else is there.  If no contacts found, make
+the 90 degree rotation.
 
 ### Translation contacts
 
-Determine if any of the bumbers in the direction of requested motion are already in contact with
-another block.  If no contacts, move one position in that direction.
+Each of the shape's child-blocks include bumpers (spheres) sticking out from their sides.  Determine
+if any of the bumpers in the direction of requested motion are already contacting anything.  If no
+contacts, move one position in that direction.
