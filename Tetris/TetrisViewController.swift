@@ -117,7 +117,7 @@ class TetrisViewController: UIViewController {
     var motionState = MotionState.idle
     var isSpawnRequested = false
     var isRotationRequested = false
-    var moveTime: TimeInterval = 0
+    var nextMoveTime: TimeInterval = 0
     var frameTime: Double!  // instantaneous frame time, affects speed of shapes falling
     var levelFrameTime = 1.0  // frame time when not hard drop or soft drop (reduces as game level increases)
     var level = 0
@@ -422,7 +422,7 @@ class TetrisViewController: UIViewController {
 
             switch motionState {
             case .hardDrop:
-                moveTime = 0  // force immediate start of hard drop in renderer
+                nextMoveTime = 0  // force immediate start of hard drop in renderer
                 frameTime = Constants.hardDropTimeFrame
             case .lateralPan:
                 frameTime = levelFrameTime
@@ -437,7 +437,7 @@ class TetrisViewController: UIViewController {
                 }
             case .softDrop:
                 if pastMotionState != .softDrop {
-                    moveTime = 0  // force immediate start of dropping in renderer (don't keep repeating this)
+                    nextMoveTime = 0  // force immediate start of dropping in renderer (don't keep repeating this)
                     frameTime = Constants.softDropTimeFrame
                 }
             default:
@@ -615,8 +615,8 @@ extension TetrisViewController: SCNSceneRendererDelegate {  // requires scnView.
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         if isSpawnRequested {
             spawnShape()
-        } else if isShapeFalling && time > moveTime {
-            moveTime = time + frameTime
+        } else if isShapeFalling && time > nextMoveTime {
+            nextMoveTime = time + frameTime
             moveShapeDown()
         } else if isRotationRequested {
             rotateShapeIfNotBlocked()
