@@ -7,7 +7,7 @@ knew much about SpriteKit.  Maybe I'll try a SpriteKit version in the future.
 Gestures:
 - Tap piece to rotate 90 degrees
 - Swipe left or right to move sideways
-- Swipe down slowly drop slowly
+- Swipe down slowly to drop slowly
 - Swipe down fast to drop fast
 
 ![Tetris](https://github.com/InvaderZim62/Tetris/assets/34785252/15b4d110-c1a1-4c87-b9a6-ce3be0e59072)
