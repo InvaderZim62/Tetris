@@ -10,7 +10,7 @@
 //
 //  Note: calls to contactTest (or functions that call contactTest) must be made from the renderer loop.
 //  Earlier versions of the app called contactTest from a separate simulation loop, and from the pan gesture.
-//  This resulted in contactTest returning no contacts, when there were, resulting in shapes moving
+//  This resulted in contactTest returning no contacts, when there were some, resulting in shapes moving
 //  through other blocks.
 //
 //  Note: handlePan stopped getting called during softDrop, because moveShapeDown was starving the background
@@ -21,7 +21,7 @@
 //  Note: If hud sets isUserInteractionsEnabled = true (default), touches at the TetrisViewController level
 //  are intercepted by the hud (and handled by hud.touchesBegan).  Tap gestures at the TetrisViewController
 //  level are still recognized.  If hud sets isUserInteractionEnabled = false, touches and tap gestures at
-//  the TetrisViewController are both recognized, so either can be used to do a hitTest.
+//  the TetrisViewController level are both recognized, so either can be used to do a hitTest.
 //
 //  Useful SceneKit conversions...
 //
@@ -47,9 +47,9 @@
 //
 //    hitTest           Return nodes at screen point, if any
 //
-//                      ex.  let hitResults = scnView.hitTest(location, options: nil)  // returns closest node
+//                      ex.  location = GCPoint(200.6, 215.3)  // screen coordinates
+//                           let hitResults = scnView.hitTest(location, options: nil)  // returns front node
 //                      -or- let hitResults = scnView.hitTest(location, options: [.searchMode: SCNHitTestSearchMode.all.rawValue])  // returns all nodes
-//                           location = GCPoint(200.6, 215.3)  // screen coordinates
 //                           hitResults = [SCNHitTestResult]   // hitResult[0].node
 //
 //    contactTest       Return nodes contacting input node
@@ -117,8 +117,8 @@ class TetrisViewController: UIViewController {
     var motionState = MotionState.idle
     var isSpawnRequested = false
     var isRotationRequested = false
-    var spawnTime: TimeInterval = 0
-    var frameTime: Double!  // instantaneous from time, affects speed of shapes falling
+    var moveTime: TimeInterval = 0
+    var frameTime: Double!  // instantaneous frame time, affects speed of shapes falling
     var levelFrameTime = 1.0  // frame time when not hard drop or soft drop (reduces as game level increases)
     var level = 0
     var levelRowsCleared = 0
@@ -422,14 +422,14 @@ class TetrisViewController: UIViewController {
 
             switch motionState {
             case .hardDrop:
-                spawnTime = 0  // force immediate start of hard drop in renderer
+                moveTime = 0  // force immediate start of hard drop in renderer
                 frameTime = Constants.hardDropTimeFrame
             case .lateralPan:
                 frameTime = levelFrameTime
                 let targetScreenPosition = SCNVector3(x: self.shapeScreenStartLocation.x + Float(translation.x),
                                                       y: self.shapeScreenStartLocation.y + Float(translation.y),
                                                       z: self.shapeScreenStartLocation.z)
-                let targetScenePosition = self.scnView.unprojectPoint(targetScreenPosition)
+                let targetScenePosition = scnView.unprojectPoint(targetScreenPosition)
                 DispatchQueue.main.async {
                     self.targetPositionX = targetScenePosition.x  // scene coordinates
                     // discretize by blockSpacing
@@ -437,7 +437,7 @@ class TetrisViewController: UIViewController {
                 }
             case .softDrop:
                 if pastMotionState != .softDrop {
-                    spawnTime = 0  // force immediate start of dropping in renderer (don't keep repeating this)
+                    moveTime = 0  // force immediate start of dropping in renderer (don't keep repeating this)
                     frameTime = Constants.softDropTimeFrame
                 }
             default:
@@ -485,7 +485,7 @@ class TetrisViewController: UIViewController {
         scnView = self.view as? SCNView
         scnView.showsStatistics = false  // true: show GPU resource usage and frames-per-second along bottom of scene
         scnView.allowsCameraControl = false  // false: move camera programmatically
-        scnView.autoenablesDefaultLighting = false  // false: disable default (ambient) light, if another light soure is specified
+        scnView.autoenablesDefaultLighting = false  // false: disable default (ambient) light, if another light source is specified
         scnView.isPlaying = true  // true: prevent SceneKit from entering a "paused" state, if there isn't anything to animate
         scnView.scene = boardScene
         scnView.delegate = self  // needed for renderer, below
@@ -615,8 +615,8 @@ extension TetrisViewController: SCNSceneRendererDelegate {  // requires scnView.
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         if isSpawnRequested {
             spawnShape()
-        } else if isShapeFalling && time > spawnTime {
-            spawnTime = time + frameTime
+        } else if isShapeFalling && time > moveTime {
+            moveTime = time + frameTime
             moveShapeDown()
         } else if isRotationRequested {
             rotateShapeIfNotBlocked()
