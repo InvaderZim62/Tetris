@@ -29,6 +29,7 @@ Perform a hit test at those locations, to see if anything is there.  If no conta
 
 Each of the shape's child-blocks include invisible bumpers (spheres) sticking out from their sides.
 Determine if any of the bumpers in the direction of requested motion are already contacting anything.
-If no contacts found, move one position in that direction.
+If no contacts found, move one position in that direction.  Note: Bumpers are removed when the shape
+is done falling.
 
 ![Bumpers](https://github.com/InvaderZim62/Tetris/assets/34785252/56db8891-8efc-4a5f-8773-b97dbb635df8)
