@@ -81,7 +81,7 @@ struct Constants {
     static let blocksPerBase = 12        // edge dimension
     static let blocksPerSide = 22        // edge dimension
     static let defaultScore = 1000       // default high score for top 10 list (must beat to get on list)
-    static let softDropTimeFrame = 0.05  // seconds
+    static let softDropTimeFrame = 0.05  // seconds (frame times determine how fast shapes fall)
     static let hardDropTimeFrame = 0.005 // seconds
     static let hardDropPanSpeedThreshold: CGFloat = 20.0  // y-speed to start hard drop
     static let panSpeedSoftDropDeadband: CGFloat = 5.0
@@ -91,10 +91,10 @@ struct Constants {
 class TetrisViewController: UIViewController {
     
     enum MotionState {
-        case idle
+        case normalDrop
+        case softDrop  // slow pan down
+        case hardDrop  // fast pan down
         case lateralPan
-        case softDrop
-        case hardDrop
     }
     
     var scnView: SCNView!
@@ -114,7 +114,7 @@ class TetrisViewController: UIViewController {
     var isPanHandled = false
     var fallingShape: ShapeNode!
     var isShapeFalling = false
-    var motionState = MotionState.idle
+    var motionState = MotionState.normalDrop
     var isSpawnRequested = false
     var isRotationRequested = false
     var nextMoveTime: TimeInterval = 0
@@ -186,7 +186,7 @@ class TetrisViewController: UIViewController {
         boardScene.reset()
         level = 0
         levelRowsCleared = 0
-        levelFrameTime = Double(framesPerGridcell[level]) / framesPerSecond
+        levelFrameTime = frameTimeForLevel(level)
         frameTime = levelFrameTime
         hud.showCountdown(from: 3, completionHandler: countdownComplete)
     }
@@ -214,9 +214,11 @@ class TetrisViewController: UIViewController {
         isShapeFalling = true
     }
     
-    func moveShapeDown() {
+    func moveShapeDown() {  // called by renderer at frameTime interval
         guard fallingShape != nil else { return }
-        if !isFallingShapeContactingOn(screenSide: .bottom) {
+        if isFallingShapeContactingOn(screenSide: .bottom) {
+            handleShapeReachingBottom()
+        } else {
             // move one space down (handlePan handles moving laterally)
             fallingShape.position.y -= Float(Constants.blockSpacing)
             // add score
@@ -229,8 +231,6 @@ class TetrisViewController: UIViewController {
             } else if motionState == .hardDrop {
                 hud.score += 2
             }
-        } else {
-            handleShapeReachingBottom()
         }
     }
     
@@ -250,7 +250,7 @@ class TetrisViewController: UIViewController {
         if numberOfRowsRemoved > 0 {
             hud.score += rowRemovalPoints[numberOfRowsRemoved - 1] * (level + 1)  // original Nintendo scoring system
         }
-        levelFrameTime = Double(framesPerGridcell[min(level, 29)]) / framesPerSecond
+        levelFrameTime = frameTimeForLevel(level)
         frameTime = levelFrameTime
         // check if game over, or spawn next shape
         if fallingShape.position.y >= (Float(Constants.blocksPerSide) / 2 - 2.5) * Float(Constants.blockSpacing) {
@@ -410,7 +410,7 @@ class TetrisViewController: UIViewController {
         isPanHandled = true
         if recognizer.state == .began {
             shapeScreenStartLocation = scnView.projectPoint(fallingShape.position)
-            motionState = .idle
+            motionState = .normalDrop
         } else if recognizer.state == .changed {
             // Note: While the pan continues, translation continuously provides the screen position relative to the starting point (in points).
             let translation = recognizer.translation(in: scnView)  // delta screen coordinates
@@ -421,6 +421,14 @@ class TetrisViewController: UIViewController {
             updateMotionState(panSpeed: velocity)
 
             switch motionState {
+            case .normalDrop:
+                break
+            case .softDrop:
+                if pastMotionState != .softDrop {
+                    // just started soft drop
+                    nextMoveTime = 0  // force immediate start of dropping in renderer
+                    frameTime = Constants.softDropTimeFrame
+                }
             case .hardDrop:
                 nextMoveTime = 0  // force immediate start of hard drop in renderer
                 frameTime = Constants.hardDropTimeFrame
@@ -435,26 +443,20 @@ class TetrisViewController: UIViewController {
                     // discretize by blockSpacing
                     self.targetPositionX = (floor(self.targetPositionX / Float(Constants.blockSpacing) - 0.5) + 0.5) * Float(Constants.blockSpacing)
                 }
-            case .softDrop:
-                if pastMotionState != .softDrop {
-                    nextMoveTime = 0  // force immediate start of dropping in renderer (don't keep repeating this)
-                    frameTime = Constants.softDropTimeFrame
-                }
-            default:
-                break
             }
         } else if recognizer.state == .ended {
             if motionState != .hardDrop { frameTime = levelFrameTime }
-            motionState = .idle
+            motionState = .normalDrop
         }
     }
     
+    // set motionState (setting back to .normalDrop is done in handlePan)
     private func updateMotionState(panSpeed: CGPoint) {
         let lateralPanSpeed = abs(panSpeed.x / 60)
         let verticalPanSpeed = panSpeed.y / 60
         
         switch motionState {
-        case .idle:
+        case .normalDrop:
             if verticalPanSpeed > Constants.hardDropPanSpeedThreshold {
                 motionState = .hardDrop
             } else if lateralPanSpeed > verticalPanSpeed {
@@ -534,6 +536,10 @@ class TetrisViewController: UIViewController {
 
     // MARK: - Utility Functions
     
+    private func frameTimeForLevel(_ level: Int) -> Double {
+        Double(framesPerGridcell[min(level, 29)]) / framesPerSecond
+    }
+    
     // determine if any bumpers on the falling shape are contacting another block or edge
     private func isFallingShapeContactingOn(screenSide: ScreenSide) -> Bool {
         var contactingBumper: SCNNode!
@@ -612,11 +618,17 @@ class TetrisViewController: UIViewController {
 }
 
 extension TetrisViewController: SCNSceneRendererDelegate {  // requires scnView.delegate = self
+    
+    // renderer manages motion of shape...
+    // if shape hits bottom, spawn new shape
+    // else if next frameTime is reached, move shape down one position
+    // else (between frame times), handle rotation requests
+    // else (between frame times), move laterally one position until reaching targetPositionX
     func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
         if isSpawnRequested {
             spawnShape()
         } else if isShapeFalling && time > nextMoveTime {
-            nextMoveTime = time + frameTime
+            nextMoveTime = time + frameTime  // frameTime is either levelFrameTime, softDropTimeFrame, or hardDropTimeFrame
             moveShapeDown()
         } else if isRotationRequested {
             rotateShapeIfNotBlocked()
