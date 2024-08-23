@@ -15,9 +15,10 @@ Gestures:
 ## Shape Movement Logic
 
 The scene rederer handles movement of the shapes.  At a fixed interval (frameTime), the rederer
-moves the falling shape down the screen, one position at a time.  In between the fixed intervals, the
-renderer services requests from the getures to rotate or move the falling shape laterally.  Before
-a movement is made, it is checked for potential contacts with other shapes or the walls.
+moves the falling shape down the screen, one position at a time.  In between the fixed intervals,
+the renderer services requests from the geture recognizers to rotate the falling shape or move it
+laterally.  Before a movement is made, it is checked for potential contacts with other shapes or
+the walls.
 
 ### Rotation contacts
 
