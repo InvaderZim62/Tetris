@@ -197,7 +197,10 @@ class TetrisViewController: UIViewController {
     }
 
     private func countdownComplete() {
-        if !isSoundMuted { audioPlayer?.play() }
+        if !isSoundMuted {
+            audioPlayer?.currentTime = 0  // restart from beginning
+            audioPlayer?.play()
+        }
         requestSpawnShape()
     }
     
@@ -406,7 +409,7 @@ class TetrisViewController: UIViewController {
     }
     
     // move shape left/right when panning across, or down when panning down
-    @objc func handlePan(recognizer: UIPanGestureRecognizer) {
+    @objc func handlePan(recognizer: UIPanGestureRecognizer) {  // called every ~0.01 - 0.03 seconds during pan
         isPanHandled = true
         if recognizer.state == .began {
             shapeScreenStartLocation = scnView.projectPoint(fallingShape.position)
@@ -624,7 +627,7 @@ extension TetrisViewController: SCNSceneRendererDelegate {  // requires scnView.
     // else if next frameTime is reached, move shape down one position
     // else (between frame times), handle rotation requests
     // else (between frame times), move laterally one position until reaching targetPositionX
-    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {
+    func renderer(_ renderer: SCNSceneRenderer, updateAtTime time: TimeInterval) {  // renderer called every ~0.0167 sec
         if isSpawnRequested {
             spawnShape()
         } else if isShapeFalling && time > nextMoveTime {
