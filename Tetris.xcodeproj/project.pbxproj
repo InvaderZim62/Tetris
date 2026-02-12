@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 53;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,6 +18,7 @@
 		4AB87AC5245CE80900DB6525 /* ShapeNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AB87AC4245CE80900DB6525 /* ShapeNode.swift */; };
 		4AC62FE824664EBE0059816E /* BlockNode.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC62FE724664EBE0059816E /* BlockNode.swift */; };
 		4AC62FEA246777640059816E /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC62FE9246777630059816E /* Utilities.swift */; };
+		4AC7DF242F3D8B7400BF3ECF /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AC7DF232F3D8B7400BF3ECF /* SceneDelegate.swift */; };
 		4AD7D718246F9B5500055E33 /* Hud.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AD7D717246F9B5500055E33 /* Hud.swift */; };
 		4AF4AE762472FFDF00775E88 /* HighScoresViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AF4AE752472FFDF00775E88 /* HighScoresViewController.swift */; };
 		4AF4AE7B24758FA200775E88 /* Button.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4AF4AE7A24758FA100775E88 /* Button.swift */; };
@@ -37,6 +38,7 @@
 		4AB87AC4245CE80900DB6525 /* ShapeNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShapeNode.swift; sourceTree = "<group>"; };
 		4AC62FE724664EBE0059816E /* BlockNode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BlockNode.swift; sourceTree = "<group>"; };
 		4AC62FE9246777630059816E /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
+		4AC7DF232F3D8B7400BF3ECF /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		4AD7D717246F9B5500055E33 /* Hud.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Hud.swift; sourceTree = "<group>"; };
 		4AF4AE752472FFDF00775E88 /* HighScoresViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighScoresViewController.swift; sourceTree = "<group>"; };
 		4AF4AE7A24758FA100775E88 /* Button.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Button.swift; sourceTree = "<group>"; };
@@ -93,6 +95,7 @@
 			isa = PBXGroup;
 			children = (
 				4AB87AAD245CD09800DB6525 /* AppDelegate.swift */,
+				4AC7DF232F3D8B7400BF3ECF /* SceneDelegate.swift */,
 				4AB87AB6245CD09900DB6525 /* Assets.xcassets */,
 				4AB87AB8245CD09900DB6525 /* LaunchScreen.storyboard */,
 			);
@@ -179,6 +182,7 @@
 				4A2FE1DF247A26B700B62E6B /* CountdownLabelNode.swift in Sources */,
 				4AD7D718246F9B5500055E33 /* Hud.swift in Sources */,
 				4AB87AC5245CE80900DB6525 /* ShapeNode.swift in Sources */,
+				4AC7DF242F3D8B7400BF3ECF /* SceneDelegate.swift in Sources */,
 				4AB87AB2245CD09800DB6525 /* TetrisViewController.swift in Sources */,
 				4AF4AE7B24758FA200775E88 /* Button.swift in Sources */,
 				4AB87AAE245CD09800DB6525 /* AppDelegate.swift in Sources */,
